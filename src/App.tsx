@@ -49,6 +49,7 @@ function App() {
         <Button onClick={() => setOpened(true)}>Debug menu</Button>
       </Group>
       <Drawer
+        overlayOpacity={0}
         opened={opened}
         onClose={() => setOpened(false)}
         title="Debug menu"
