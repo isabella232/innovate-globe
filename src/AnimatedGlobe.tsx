@@ -77,8 +77,6 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       const colors = ["F05245", "00ADFF", "FFE300", "1CEBCF"];
       const color = colors[Math.floor(Math.random() * (colors.length - 0))];
 
-      console.log();
-
       const arc = {
         startLat,
         startLng,
@@ -227,7 +225,6 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       htmlElement={() => {
         const el = document.createElement("img");
         el.setAttribute("src", "/favicon.png");
-        console.log(el);
         return el;
       }}
     />
