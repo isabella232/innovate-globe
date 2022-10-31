@@ -62,6 +62,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
   const [arcsData, setArcsData] = useState<ArcData[]>([]);
   const [ringsData, setRingsData] = useState<RingData[]>([]);
   const [animationTick, setAnimationTick] = useState(0);
+  const [geometryCount, setGeometryCount] = useState(0);
   const globeRef = useRef<GlobeMethods>();
 
   const emitArc = async () => {
@@ -71,8 +72,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       const endLat = 37.926868;
       const endLng = -78.024902;
       const colors = ["F05245", "00ADFF", "FFE300", "1CEBCF"];
-      const color =
-        colors[Math.floor(Math.random() * (colors.length - 0))];
+      const color = colors[Math.floor(Math.random() * (colors.length - 0))];
 
       console.log();
 
@@ -102,35 +102,29 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     const evictionTimeForArcs = flightTime * 2;
     const evictionTimeForRings = flightTime * arcRelativeLength;
 
-    setArcsData((arcsData: ArcData[]) => [...arcsData, ...arcs]);
-    setTimeout(
-      () =>
-        setArcsData((arcsDataToEvict: ArcData[]) => {
-          return arcsDataToEvict.filter((d) => {
-            return (
-              Math.abs(d.timestamp - new Date().getTime()) <=
-              evictionTimeForArcs
-            );
-          });
-        }),
-      evictionTimeForArcs
-    );
+    setArcsData((arcsData: ArcData[]) => {
+      const filteredArcs = arcsData.filter((d) => {
+        return (
+          Math.abs(d.timestamp - new Date().getTime()) <= evictionTimeForArcs
+        );
+      });
+      return [...filteredArcs, ...arcs];
+    });
 
-    setRingsData((ringsData: RingData[]) => [...ringsData, ...sourceRings]);
-    setTimeout(
-      () =>
-        setRingsData((ringsDataToEvict: RingData[]) => {
-          return ringsDataToEvict.filter((d) => {
-            return (
-              Math.abs(d.timestamp - new Date().getTime()) <=
-              evictionTimeForRings
-            );
-          });
-        }),
-      evictionTimeForRings
-    );
+    setRingsData((ringsData: RingData[]) => {
+      const filteredRings = ringsData.filter((d) => {
+        return (
+          Math.abs(d.timestamp - new Date().getTime()) <= evictionTimeForRings
+        );
+      });
+      return [...filteredRings, ...sourceRings];
+    });
 
     setAnimationTick(animationTick + 1);
+    if (debug && animationTick % 10 === 0 && animationTick !== 0) {
+      const sceneJSON = globeRef.current?.scene().toJSON();
+      setGeometryCount(sceneJSON.geometries.length);
+    }
   };
 
   useEffect(() => {
@@ -151,10 +145,6 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     globeRef.current?.pauseAnimation();
   } else {
     globeRef.current?.resumeAnimation();
-  }
-
-  if (animationTick >= 100) {
-    window.location.reload();
   }
 
   return (
@@ -181,6 +171,13 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
                 )} MB / ${Math.round(
                   (window.performance as any).memory.jsHeapSizeLimit / 1048576
                 )} MB`,
+              },
+              {
+                lat: 8,
+                lng: 0,
+                text: `ThreeJS Geometry count: ${
+                  geometryCount === 0 ? "..." : geometryCount
+                }`,
               },
             ]
           : []
