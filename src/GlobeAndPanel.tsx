@@ -39,6 +39,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
     atmosphereColor: StringParam,
     atmosphereAltitude: NumberParam,
     eartImg: StringParam,
+    discoMode: BooleanParam,
   });
 
   function force<T>(v: T | null | undefined, fallback: T): T {
@@ -78,6 +79,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
   const [earthImg, setEarthImg] = useState(
     force(query.eartImg, "//unpkg.com/three-globe/example/img/earth-night.jpg")
   );
+  const [discoMode, setDiscoMode] = useState(force(query.discoMode, false));
   const [opened, setOpened] = useState(false);
 
   return (
@@ -288,6 +290,16 @@ export const GlobeAndPanel: FunctionComponent = () => {
                 },
               ]}
             ></Select>
+            <Checkbox
+              label="Hollow globe"
+              checked={discoMode}
+              onChange={() => {
+                setDiscoMode(!discoMode);
+                setQuery({
+                  discoMode: !discoMode,
+                });
+              }}
+            ></Checkbox>
           </ScrollArea>
         </Stack>
       </Drawer>
@@ -311,6 +323,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
         atmosphereColor={atmosphereColor}
         atmosphereAltitude={atmosphereAltitude}
         arcAltitudeAutoScale={arcAltitudeAutoScale}
+        discoMode={discoMode}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import ReactGlobeGl, { GlobeMethods } from "react-globe.gl";
+import globeData from "./data/admin-data.json";
 
 interface ArcData {
   filter?: any;
@@ -37,6 +38,7 @@ interface AnimatedGlobeProps {
   atmosphereColor: string;
   atmosphereAltitude: number;
   arcAltitudeAutoScale: number;
+  discoMode: boolean;
 }
 
 export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
@@ -58,6 +60,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
   atmosphereColor,
   atmosphereAltitude,
   arcAltitudeAutoScale,
+  discoMode,
 }) => {
   const [arcsData, setArcsData] = useState<ArcData[]>([]);
   const [ringsData, setRingsData] = useState<RingData[]>([]);
@@ -183,6 +186,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
           : []
       }
       labelSize={() => 1}
+      labelAltitude={0}
       labelResolution={2}
       labelIncludeDot={false}
       labelsTransitionDuration={0}
@@ -204,9 +208,28 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       ringPropagationSpeed={ringSpeed}
       ringRepeatPeriod={(flightTime * arcRelativeLength) / numRings}
       backgroundImageUrl="/night-sky.png"
-      globeImageUrl={earthImg}
+      globeImageUrl={discoMode ? "" : earthImg}
       atmosphereColor={atmosphereColor}
       atmosphereAltitude={atmosphereAltitude}
+      hexPolygonsData={discoMode ? [...globeData.features] : []}
+      hexPolygonResolution={3}
+      hexPolygonMargin={0.3}
+      hexPolygonLabel={(feat: any) => feat.properties.ADMIN}
+      showGlobe={discoMode ? false : true}
+      showAtmosphere={discoMode ? false : true}
+      htmlElementsData={[
+        {
+          lat: 37.926868,
+          lng: -78.024902,
+          size: 1,
+        },
+      ].concat([])}
+      htmlElement={() => {
+        const el = document.createElement("img");
+        el.setAttribute("src", "/favicon.png");
+        console.log(el);
+        return el;
+      }}
     />
   );
 };

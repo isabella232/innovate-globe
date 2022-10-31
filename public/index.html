@@ -37,14 +37,4 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
-  <script>
-    if (new URL(document.location.href).searchParams.get("admin") === "1") {
-      var stats = new Stats();
-      document.body.appendChild(stats.dom);
-      requestAnimationFrame(function loop() {
-        stats.update();
-        requestAnimationFrame(loop);
-      });
-    }
-  </script>
 </html>
