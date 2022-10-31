@@ -70,9 +70,11 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       const startLng = (Math.random() - 0.5) * 360;
       const endLat = 37.926868;
       const endLng = -78.024902;
-      const color = `hsl(${360 * Math.random()}, ${25 + 70 * Math.random()}%,${
-        85 + 10 * Math.random()
-      }%`;
+      const colors = ["F05245", "00ADFF", "FFE300", "1CEBCF"];
+      const color =
+        colors[Math.floor(Math.random() * (colors.length - 0))];
+
+      console.log();
 
       const arc = {
         startLat,
@@ -138,7 +140,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     return () => {
       clearTimeout(timeout);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationTick]);
 
   if (globeRef.current) {
@@ -149,6 +151,10 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     globeRef.current?.pauseAnimation();
   } else {
     globeRef.current?.resumeAnimation();
+  }
+
+  if (animationTick >= 200) {
+    window.location.reload();
   }
 
   return (
