@@ -153,7 +153,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     globeRef.current?.resumeAnimation();
   }
 
-  if (animationTick >= 200) {
+  if (animationTick >= 100) {
     window.location.reload();
   }
 
