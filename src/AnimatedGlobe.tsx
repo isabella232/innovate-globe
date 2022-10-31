@@ -138,6 +138,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     return () => {
       clearTimeout(timeout);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationTick]);
 
   if (globeRef.current) {
