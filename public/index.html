@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <script src="//mrdoob.github.io/stats.js/build/stats.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
@@ -40,4 +41,14 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
+  <script>
+    if (new URL(document.location.href).searchParams.get("admin") === "1") {
+      var stats = new Stats();
+      document.body.appendChild(stats.dom);
+      requestAnimationFrame(function loop() {
+        stats.update();
+        requestAnimationFrame(loop);
+      });
+    }
+  </script>
 </html>
