@@ -53,7 +53,10 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const numberOfEvents = res.length;
     const byTypes = groupBy(res, (r) => r.type);
     const byRegion = groupBy(res, (r) => r.region);
-    const byCity = groupBy(res, (r) => r.city);
+    const byCity = groupBy(
+      res.filter((d) => d.city !== "null" && d.city !== null),
+      (r) => r.city
+    );
 
     const newNumEvents = numEvents
       .concat({ num: numberOfEvents, time: new Date().getTime() })

@@ -143,10 +143,18 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     setLabelsData((labelsData: LabelData[]) => {
       const filteredLabels = labelsData.filter((d) => {
         return (
-          Math.abs(d.timestamp - new Date().getTime()) <= evictionTimeForLabels
+          Math.abs(d.timestamp - new Date().getTime()) <=
+            evictionTimeForLabels &&
+          d.text !== "null" &&
+          d.text !== null
         );
       });
-      return uniqBy([...filteredLabels, ...labels], (d) => d.text);
+      return uniqBy([...filteredLabels, ...labels], (d) => d.text).map((d) => {
+        return {
+          ...d,
+          text: d.text.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        };
+      });
     });
 
     setAnimationTick(animationTick + 1);
