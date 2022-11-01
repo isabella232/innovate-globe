@@ -292,6 +292,10 @@ export const GlobeAndPanel: FunctionComponent = () => {
                   value: "/somad.jpeg",
                   label: "So mad",
                 },
+                {
+                  value: "/baudet.png",
+                  label: "Baudet",
+                },
               ]}
             ></Select>
             <Checkbox
