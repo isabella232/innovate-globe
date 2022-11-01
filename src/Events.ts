@@ -36,6 +36,7 @@ export const BorderColors = [
 
 export const EventTypeColors: Record<string, number> = {
   "api.analytics.search": 0,
+  "api.analytics.searches": 0,
   "api.analytics.click": 1,
   "api.analytics.custom": 2,
   "api.analytics.view": 3,
