@@ -180,6 +180,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 
   if (globeRef.current) {
     (globeRef.current.controls() as any).autoRotate = autoRotate;
+    (globeRef.current.controls() as any).autoRotateSpeed = 0.6;
   }
 
   if (!anim) {
