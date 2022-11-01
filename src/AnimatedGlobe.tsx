@@ -1,6 +1,8 @@
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import ReactGlobeGl, { GlobeMethods } from "react-globe.gl";
 import globeData from "./data/admin-data.json";
+import { AWSRegionGeo, LiveEvent } from "./Events";
+import { uniqBy } from "lodash";
 
 interface ArcData {
   filter?: any;
@@ -16,6 +18,13 @@ interface RingData {
   lat: number;
   lng: number;
   color: string;
+  timestamp: number;
+}
+
+interface LabelData {
+  lat: number;
+  lng: number;
+  text: string;
   timestamp: number;
 }
 
@@ -53,7 +62,6 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
   arcRelativeLength,
   ringRadius,
   ringSpeed,
-  numberOfAnimation,
   arcDashGap,
   earthImg,
   arcStroke,
@@ -64,44 +72,55 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 }) => {
   const [arcsData, setArcsData] = useState<ArcData[]>([]);
   const [ringsData, setRingsData] = useState<RingData[]>([]);
+  const [labelsData, setLabelsData] = useState<LabelData[]>([]);
   const [animationTick, setAnimationTick] = useState(0);
   const [geometryCount, setGeometryCount] = useState(0);
   const globeRef = useRef<GlobeMethods>();
 
   const emitArc = async () => {
-    const datum = [...Array(numberOfAnimation).keys()].map(() => {
-      const startLat = (Math.random() - 0.5) * 180;
-      const startLng = (Math.random() - 0.5) * 360;
-      const endLat = 37.926868;
-      const endLng = -78.024902;
+    const res = (await (
+      await fetch(
+        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${tickSpeed}`
+      )
+    ).json()) as LiveEvent[];
+
+    const datum = res.map((liveEvent) => {
       const colors = ["F05245", "00ADFF", "FFE300", "1CEBCF"];
       const color = colors[Math.floor(Math.random() * (colors.length - 0))];
-
-      const arc = {
-        startLat,
-        startLng,
-        endLat,
-        endLng,
-        color,
-        timestamp: new Date().getTime(),
-      };
-      const sourceRing = {
-        lat: startLat,
-        lng: startLng,
-        color,
-        timestamp: new Date().getTime(),
-      };
+      const lattitude = Number(liveEvent.lat);
+      const longitude = Number(liveEvent.long);
+      const timestamp = new Date().getTime();
 
       return {
-        arc,
-        sourceRing,
+        arc: {
+          startLat: lattitude,
+          endLat: AWSRegionGeo[liveEvent.region].lat,
+          startLng: longitude,
+          endLng: AWSRegionGeo[liveEvent.region].lng,
+          color,
+          timestamp,
+        } as ArcData,
+        sourceRing: {
+          color,
+          lat: lattitude,
+          lng: longitude,
+          timestamp,
+        } as RingData,
+        label: {
+          lat: lattitude,
+          lng: longitude,
+          text: liveEvent.city,
+          timestamp,
+        } as LabelData,
       };
     });
 
     const arcs = datum.map((d) => d.arc);
     const sourceRings = datum.map((d) => d.sourceRing);
+    const labels = datum.map((d) => d.label);
     const evictionTimeForArcs = flightTime * 2;
     const evictionTimeForRings = flightTime * arcRelativeLength;
+    const evictionTimeForLabels = flightTime * 4;
 
     setArcsData((arcsData: ArcData[]) => {
       const filteredArcs = arcsData.filter((d) => {
@@ -119,6 +138,15 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
         );
       });
       return [...filteredRings, ...sourceRings];
+    });
+
+    setLabelsData((labelsData: LabelData[]) => {
+      const filteredLabels = labelsData.filter((d) => {
+        return (
+          Math.abs(d.timestamp - new Date().getTime()) <= evictionTimeForLabels
+        );
+      });
+      return uniqBy([...filteredLabels, ...labels], (d) => d.text);
     });
 
     setAnimationTick(animationTick + 1);
@@ -180,8 +208,13 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
                   geometryCount === 0 ? "..." : geometryCount
                 }`,
               },
-            ]
-          : []
+              {
+                lat: 10,
+                lng: 0,
+                text: `Labels: ${labelsData.length}`,
+              },
+            ].concat(labelsData)
+          : [...labelsData]
       }
       labelSize={() => 1}
       labelAltitude={0}
