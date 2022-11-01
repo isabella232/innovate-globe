@@ -105,7 +105,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
         style={{ zIndex: 3 }}
       >
         <Stack>
-          <ScrollArea style={{ height: "80vh" }} offsetScrollbars>
+          <ScrollArea style={{ height: "90vh" }} offsetScrollbars>
             <Checkbox
               label="Render rings"
               checked={renderRings}
@@ -287,6 +287,10 @@ export const GlobeAndPanel: FunctionComponent = () => {
                 {
                   value: "//unpkg.com/three-globe/example/img/earth-water.png",
                   label: "Water",
+                },
+                {
+                  value: "/somad.jpeg",
+                  label: "So mad",
                 },
               ]}
             ></Select>

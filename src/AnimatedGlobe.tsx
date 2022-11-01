@@ -250,7 +250,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       showAtmosphere={discoMode ? false : true}
       htmlElementsData={[
         {
-          ...AWSRegionGeo['us-east-1'],
+          ...AWSRegionGeo["us-east-1"],
           size: 1,
         },
       ].concat([])}

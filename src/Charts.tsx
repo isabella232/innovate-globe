@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
-import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { Bar, Doughnut, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space } from "@mantine/core";
 import { LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
@@ -39,6 +39,10 @@ export const Charts: FunctionComponent<ChartsProps> = ({
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
   const [animationTick, setAnimationTick] = useState(0);
+  const chartsOptions = {
+    responsive: true,
+    color: "white",
+  };
 
   const emitData = async () => {
     const res = (await (
@@ -84,38 +88,40 @@ export const Charts: FunctionComponent<ChartsProps> = ({
           width: "25%",
         }}
       >
-        <Doughnut
-          options={{ responsive: true }}
-          data={{
-            labels: Object.keys(eventsByType),
-            datasets: [
-              {
-                backgroundColor: [...backgroundColors].reverse(),
-                borderColor: [...borderColors].reverse(),
-                label: "Events by types",
-                data: Object.values(eventsByType).map(
-                  (byType) => byType.length
-                ),
-              },
-            ],
-          }}
-        />
-        <Bar
-          options={{ responsive: true }}
-          data={{
-            labels: Object.keys(eventsByCity),
-            datasets: [
-              {
-                backgroundColor: [...backgroundColors],
-                borderColor: [...borderColors],
-                label: "Events by cities",
-                data: Object.values(eventsByCity).map(
-                  (byType) => byType.length
-                ),
-              },
-            ],
-          }}
-        />
+        <ScrollArea style={{ height: "100%" }}>
+          <Pie
+            options={{ ...chartsOptions }}
+            data={{
+              labels: Object.keys(eventsByType),
+              datasets: [
+                {
+                  backgroundColor: [...backgroundColors].reverse(),
+                  borderColor: [...borderColors].reverse(),
+                  label: "Events by types",
+                  data: Object.values(eventsByType).map(
+                    (byType) => byType.length
+                  ),
+                },
+              ],
+            }}
+          />
+          <Bar
+            options={{ ...chartsOptions }}
+            data={{
+              labels: Object.keys(eventsByCity),
+              datasets: [
+                {
+                  backgroundColor: [...backgroundColors],
+                  borderColor: [...borderColors],
+                  label: "Events by cities",
+                  data: Object.values(eventsByCity).map(
+                    (byType) => byType.length
+                  ),
+                },
+              ],
+            }}
+          />
+        </ScrollArea>
       </div>
       <div
         style={{
@@ -129,24 +135,27 @@ export const Charts: FunctionComponent<ChartsProps> = ({
       >
         <ScrollArea style={{ height: "100%" }}>
           <Line
-            options={{ responsive: true, color: "white" }}
+            options={{ ...chartsOptions }}
             data={{
-              labels: numEvents
-                .reverse()
-                .map((d) => `${new Date().getTime() - d.time} ms`),
+              labels: numEvents.map(
+                (d) =>
+                  `${Math.floor(
+                    (new Date().getTime() - d.time) / 1000
+                  )} seconds ago`
+              ),
               datasets: [
                 {
-                  borderColor: "#F05245",
-                  backgroundColor: "#F05245",
+                  borderColor: borderColors[5],
+                  backgroundColor: backgroundColors[5],
                   label: "Events per seconds",
-                  data: numEvents.reverse().map((d) => d.num),
+                  data: numEvents.map((d) => d.num),
                 },
               ],
             }}
           />
           <Space />
           <Doughnut
-            options={{ responsive: true }}
+            options={{ ...chartsOptions }}
             data={{
               labels: Object.keys(eventsByRegion),
               datasets: [
