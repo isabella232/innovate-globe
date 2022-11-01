@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
-import { Bar, Doughnut, Line, Pie } from "react-chartjs-2";
+import { Bar, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space } from "@mantine/core";
 import { LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
