@@ -28,7 +28,6 @@ const borderColors = [
 ];
 
 export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
-  const slowTick = tickSpeed * 50;
   const [numEvents, setNumEvents] = useState<
     Array<{ num: number; time: number }>
   >([]);
@@ -46,13 +45,15 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
   const emitData = async () => {
     const resFast = (await (
       await fetch(
-        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${tickSpeed}`
+        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${
+          tickSpeed * 10
+        }`
       )
     ).json()) as LiveEvent[];
 
     const resSlow = (await (
       await fetch(
-        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${slowTick}`
+        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${2000}`
       )
     ).json()) as LiveEvent[];
 
@@ -70,13 +71,13 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
       .concat({ num: numberOfEvents, time: new Date().getTime() })
       .slice(-100);
 
-    if (Object.keys(byTypes).length && animationTick % tickSpeed === 0) {
+    if (Object.keys(byTypes).length && animationTick % 5 === 0) {
       setEventsByType(byTypes);
     }
     /*if (Object.keys(byRegion).length && animationTick % tickSpeed === 0) {
       setEventsByRegion(byRegion);
     }*/
-    if (Object.keys(byCity).length && animationTick % tickSpeed === 0) {
+    if (Object.keys(byCity).length && animationTick % 5 === 0) {
       setEventsByCity(byCity);
     }
 
@@ -189,7 +190,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
                 {
                   borderColor: borderColors[5],
                   backgroundColor: backgroundColors[5],
-                  label: "Events per seconds",
+                  label: `Events per seconds`,
                   data: numEvents.map((d) => d.num),
                 },
               ],
