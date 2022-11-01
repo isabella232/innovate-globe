@@ -2,7 +2,7 @@ import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
 import { Bar, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space } from "@mantine/core";
-import { LiveEvent } from "./Events";
+import { LambdaURL, LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
 
 export interface ChartsProps {
@@ -44,17 +44,11 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
 
   const emitData = async () => {
     const resFast = (await (
-      await fetch(
-        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${
-          tickSpeed * 10
-        }`
-      )
+      await fetch(`${LambdaURL}/?last=${tickSpeed * 10}`)
     ).json()) as LiveEvent[];
 
     const resSlow = (await (
-      await fetch(
-        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${2000}`
-      )
+      await fetch(`${LambdaURL}/?last=${2000}`)
     ).json()) as LiveEvent[];
 
     const numberOfEvents = resFast.length;

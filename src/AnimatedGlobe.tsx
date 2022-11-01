@@ -5,6 +5,7 @@ import {
   AWSRegionGeo,
   BorderColors,
   EventTypeColors,
+  LambdaURL,
   LiveEvent,
 } from "./Events";
 import { uniqBy } from "lodash";
@@ -84,9 +85,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 
   const emitArc = async () => {
     const res = (await (
-      await fetch(
-        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${tickSpeed}`
-      )
+      await fetch(`${LambdaURL}/?last=${tickSpeed}`)
     ).json()) as LiveEvent[];
 
     const datum = res.map((liveEvent) => {
