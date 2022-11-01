@@ -102,7 +102,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
         title="Debug menu"
         padding="xl"
         size="xl"
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 3 }}
       >
         <Stack>
           <ScrollArea style={{ height: "80vh" }} offsetScrollbars>
