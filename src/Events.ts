@@ -39,4 +39,5 @@ export const EventTypeColors: Record<string, number> = {
   "api.analytics.click": 1,
   "api.analytics.custom": 2,
   "api.analytics.view": 3,
+  "api.analytics.collect": 4,
 };
