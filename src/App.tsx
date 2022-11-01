@@ -9,15 +9,14 @@ import gif from './dancing-skelly.gif';
 function App() {
   function easterEgg() {
     var imgDiv = document.createElement("div");
-    imgDiv.style.position = "fixed";
-    imgDiv.style.zIndex = "2";
-    imgDiv.style.bottom = "40%";
-    imgDiv.style.padding = "10px";
-    imgDiv.style.left = "230%";
-    imgDiv.style.width = "200%";
-    imgDiv.style.transform = "scale(3)";
 
     var img = document.createElement("img");
+    img.style.height = "90vh";
+    img.style.position = "fixed";
+    img.style.top = "50%";
+    img.style.left = "50%";
+    img.style.transform = "translate(-50%, -50%)";
+
     img.src = gif;
     imgDiv.appendChild(img);
 
