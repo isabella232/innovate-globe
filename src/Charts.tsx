@@ -32,9 +32,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
   const [numEvents, setNumEvents] = useState<
     Array<{ num: number; time: number }>
   >([]);
-  const [eventsByRegion, setEventsByRegion] = useState<Dictionary<LiveEvent[]>>(
+  /*const [eventsByRegion, setEventsByRegion] = useState<Dictionary<LiveEvent[]>>(
     {}
-  );
+  );*/
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
   const [animationTick, setAnimationTick] = useState(0);
@@ -60,7 +60,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
     const byTypes = groupBy(resSlow, (r) =>
       r.type.replace("api.analytics.", "")
     );
-    const byRegion = groupBy(resSlow, (r) => r.region);
+    //const byRegion = groupBy(resSlow, (r) => r.region);
     const byCity = groupBy(
       resSlow.filter((d) => d.city !== "null" && d.city !== null),
       (r) => r.city
@@ -73,9 +73,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
     if (Object.keys(byTypes).length && animationTick % tickSpeed === 0) {
       setEventsByType(byTypes);
     }
-    if (Object.keys(byRegion).length && animationTick % tickSpeed === 0) {
+    /*if (Object.keys(byRegion).length && animationTick % tickSpeed === 0) {
       setEventsByRegion(byRegion);
-    }
+    }*/
     if (Object.keys(byCity).length && animationTick % tickSpeed === 0) {
       setEventsByCity(byCity);
     }
@@ -102,35 +102,27 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
           bottom: "15%",
           padding: 10,
           left: 0,
+          top: 50,
           zIndex: 2,
           width: "25%",
         }}
       >
         <ScrollArea style={{ height: "100%" }}>
-          <Pie
-            options={{ ...chartsOptions }}
-            data={{
-              labels: Object.keys(eventsByType),
-              datasets: [
-                {
-                  backgroundColor: [...backgroundColors].reverse(),
-                  borderColor: [...borderColors].reverse(),
-                  label: "Events by types",
-                  data: Object.values(eventsByType).map(
-                    (byType) => byType.length
-                  ),
-                },
-              ],
-            }}
-          />
           <Bar
-            options={{ ...chartsOptions }}
+            style={{
+              height: "100%",
+            }}
+            options={{
+              ...chartsOptions,
+              indexAxis: "y" as const,
+              aspectRatio: 0.5,
+            }}
             data={{
               labels: Object.keys(eventsByCity),
               datasets: [
                 {
-                  backgroundColor: [...backgroundColors],
-                  borderColor: [...borderColors],
+                  backgroundColor: [...backgroundColors].reverse(),
+                  borderColor: [...borderColors].reverse(),
                   label: "Events by cities",
                   data: Object.values(eventsByCity).map(
                     (byType) => byType.length
@@ -152,6 +144,22 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
         }}
       >
         <ScrollArea style={{ height: "100%" }}>
+          <Pie
+            options={{ ...chartsOptions }}
+            data={{
+              labels: Object.keys(eventsByType),
+              datasets: [
+                {
+                  backgroundColor: [...backgroundColors],
+                  borderColor: [...borderColors],
+                  label: "Events by types",
+                  data: Object.values(eventsByType).map(
+                    (byType) => byType.length
+                  ),
+                },
+              ],
+            }}
+          />
           <Line
             options={{
               ...chartsOptions,
@@ -188,7 +196,16 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
             }}
           />
           <Space />
-          <Doughnut
+        </ScrollArea>
+      </div>
+    </>
+  );
+};
+
+/**
+ * 
+ * 
+ * <Doughnut
             options={{ ...chartsOptions }}
             data={{
               labels: Object.keys(eventsByRegion),
@@ -204,8 +221,4 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
               ],
             }}
           />
-        </ScrollArea>
-      </div>
-    </>
-  );
-};
+ */
