@@ -1,7 +1,12 @@
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import ReactGlobeGl, { GlobeMethods } from "react-globe.gl";
 import globeData from "./data/admin-data.json";
-import { AWSRegionGeo, LiveEvent } from "./Events";
+import {
+  AWSRegionGeo,
+  BorderColors,
+  EventTypeColors,
+  LiveEvent,
+} from "./Events";
 import { uniqBy } from "lodash";
 
 interface ArcData {
@@ -85,8 +90,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     ).json()) as LiveEvent[];
 
     const datum = res.map((liveEvent) => {
-      const colors = ["F05245", "00ADFF", "FFE300", "1CEBCF"];
-      const color = colors[Math.floor(Math.random() * (colors.length - 0))];
+      const color = BorderColors[EventTypeColors[liveEvent.type]];
       const lattitude = Number(liveEvent.lat);
       const longitude = Number(liveEvent.long);
       const timestamp = new Date().getTime();
@@ -120,7 +124,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     const labels = datum.map((d) => d.label);
     const evictionTimeForArcs = flightTime * 2;
     const evictionTimeForRings = flightTime * arcRelativeLength;
-    const evictionTimeForLabels = flightTime * 4;
+    const evictionTimeForLabels = flightTime;
 
     setArcsData((arcsData: ArcData[]) => {
       const filteredArcs = arcsData.filter((d) => {
@@ -166,7 +170,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 
   useEffect(() => {
     const timeout = setTimeout(async () => {
-      await emitArc();
+      emitArc();
     }, tickSpeed);
     return () => {
       clearTimeout(timeout);

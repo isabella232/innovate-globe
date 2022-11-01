@@ -27,9 +27,8 @@ const borderColors = [
   "rgba(255, 159, 64, 1)",
 ];
 
-export const Charts: FunctionComponent<ChartsProps> = ({
-  tickSpeed = 1000,
-}) => {
+export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
+  const slowTick = tickSpeed * 50;
   const [numEvents, setNumEvents] = useState<
     Array<{ num: number; time: number }>
   >([]);
@@ -45,30 +44,39 @@ export const Charts: FunctionComponent<ChartsProps> = ({
   };
 
   const emitData = async () => {
-    const res = (await (
+    const resFast = (await (
       await fetch(
         `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${tickSpeed}`
       )
     ).json()) as LiveEvent[];
-    const numberOfEvents = res.length;
-    const byTypes = groupBy(res, (r) => r.type);
-    const byRegion = groupBy(res, (r) => r.region);
+
+    const resSlow = (await (
+      await fetch(
+        `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?last=${slowTick}`
+      )
+    ).json()) as LiveEvent[];
+
+    const numberOfEvents = resFast.length;
+    const byTypes = groupBy(resSlow, (r) =>
+      r.type.replace("api.analytics.", "")
+    );
+    const byRegion = groupBy(resSlow, (r) => r.region);
     const byCity = groupBy(
-      res.filter((d) => d.city !== "null" && d.city !== null),
+      resSlow.filter((d) => d.city !== "null" && d.city !== null),
       (r) => r.city
     );
 
     const newNumEvents = numEvents
       .concat({ num: numberOfEvents, time: new Date().getTime() })
-      .slice(-10);
+      .slice(-100);
 
-    if (Object.keys(byTypes).length) {
+    if (Object.keys(byTypes).length && animationTick % tickSpeed === 0) {
       setEventsByType(byTypes);
     }
-    if (Object.keys(byRegion).length) {
+    if (Object.keys(byRegion).length && animationTick % tickSpeed === 0) {
       setEventsByRegion(byRegion);
     }
-    if (Object.keys(byCity).length) {
+    if (Object.keys(byCity).length && animationTick % tickSpeed === 0) {
       setEventsByCity(byCity);
     }
 
@@ -145,7 +153,23 @@ export const Charts: FunctionComponent<ChartsProps> = ({
       >
         <ScrollArea style={{ height: "100%" }}>
           <Line
-            options={{ ...chartsOptions }}
+            options={{
+              ...chartsOptions,
+              elements: {
+                point: {
+                  radius: 0,
+                },
+              },
+              animations: {
+                tension: {
+                  duration: 5000,
+                  easing: "linear",
+                  from: 1,
+                  to: 0,
+                  loop: true,
+                },
+              },
+            }}
             data={{
               labels: numEvents.map(
                 (d) =>
