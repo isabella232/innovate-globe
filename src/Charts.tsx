@@ -62,9 +62,16 @@ export const Charts: FunctionComponent<ChartsProps> = ({
       .concat({ num: numberOfEvents, time: new Date().getTime() })
       .slice(-10);
 
-    setEventsByType(byTypes);
-    setEventsByRegion(byRegion);
-    setEventsByCity(byCity);
+    if (Object.keys(byTypes).length) {
+      setEventsByType(byTypes);
+    }
+    if (Object.keys(byRegion).length) {
+      setEventsByRegion(byRegion);
+    }
+    if (Object.keys(byCity).length) {
+      setEventsByCity(byCity);
+    }
+
     setNumEvents(newNumEvents);
     setAnimationTick(animationTick + 1);
   };
