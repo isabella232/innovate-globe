@@ -51,7 +51,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
       await fetch(`${LambdaURL}/?last=${2000}`)
     ).json()) as LiveEvent[];
 
-    const numberOfEvents = resFast.length + 500;
+    const numberOfEvents = resFast.length;
     const byTypes = groupBy(resSlow, (r) =>
       r.type.replace("api.analytics.", "")
     );

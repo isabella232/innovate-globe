@@ -44,4 +44,4 @@ export const EventTypeColors: Record<string, number> = {
 };
 
 export const LambdaURL =
-  "https://rha5ieunhnmgc3d4xtsow4dj240mggtt.lambda-url.us-east-1.on.aws";
+  "https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws";

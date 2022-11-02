@@ -97,9 +97,9 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       return {
         arc: {
           startLat: lattitude,
-          endLat: AWSRegionGeo[liveEvent.region].lat,
+          endLat: AWSRegionGeo['us-east-1'].lat,
           startLng: longitude,
-          endLng: AWSRegionGeo[liveEvent.region].lng,
+          endLng: AWSRegionGeo['us-east-1'].lng,
           color,
           timestamp,
         } as ArcData,
