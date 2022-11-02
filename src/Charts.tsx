@@ -159,6 +159,11 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         }}
       >
         <ScrollArea style={{ height: "100%" }}>
+          {localStorage.getItem("pw") === null && (
+            <Text size="xl" weight="bold" color="red">
+              You need to input the password in debug menu ! Test4...
+            </Text>
+          )}
           <Text size="xl" weight="bold" color="white">
             Add to cart amount:
           </Text>
