@@ -38,7 +38,8 @@ export const Charts: FunctionComponent<ChartsProps> = ({
   );*/
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
-  const [latency, setLatency] = useState<Number>(0);
+  const [latency, setLatency] = useState<number>(0);
+  const [money, setMoney] = useState<number>(0);
   const [animationTick, setAnimationTick] = useState(0);
   const chartsOptions = {
     responsive: true,
@@ -47,7 +48,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
   const emitData = async () => {
     const resFast = (await (
-      await fetch(`${LambdaURL}/?last=${tickSpeed}`)
+      await fetch(`${LambdaURL}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
 
     const numberOfEvents = resFast.length;
@@ -67,15 +68,25 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     if (Object.keys(byTypes).length && animationTick % 5 === 0) {
       setEventsByType(byTypes);
     }
-    /*if (Object.keys(byRegion).length && animationTick % tickSpeed === 0) {
-      setEventsByRegion(byRegion);
-    }*/
     if (Object.keys(byCity).length && animationTick % 5 === 0) {
       setEventsByCity(byCity);
     }
+    const newMoney = resFast.reduce((prev, current) => {
+      if (current.price) {
+        return prev + Number(current.price);
+      } else {
+        return prev;
+      }
+    }, 0);
 
+    setMoney(money + newMoney);
     setNumEvents(newNumEvents);
-    setLatency((new Date().getTime() - resFast[0]?.timestamp) / 1000);
+    if (resFast[0]) {
+      setLatency((new Date().getTime() - resFast[0]?.timestamp) / 1000);
+    } else {
+      setLatency(0);
+    }
+
     setAnimationTick(animationTick + 1);
   };
 
@@ -131,9 +142,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({
       <div
         style={{
           position: "fixed",
-          bottom: "15%",
+          top: "15%",
           padding: 10,
-          right: 0,
+          right: 20,
           zIndex: 2,
           width: "25%",
         }}
@@ -141,6 +152,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         <ScrollArea style={{ height: "100%" }}>
           <Text size="xl" color="white" weight="bold">
             Current latency: {latency.toString()} seconds
+          </Text>
+          <Text size="xl" color="white" weight="bold">
+            Add to cart amount: {money.toFixed().toString()} $
           </Text>
           <Pie
             options={{ ...chartsOptions }}
@@ -158,65 +172,57 @@ export const Charts: FunctionComponent<ChartsProps> = ({
               ],
             }}
           />
-          <Line
-            options={{
-              ...chartsOptions,
-              elements: {
-                point: {
-                  radius: 0,
-                },
-              },
-              animations: {
-                tension: {
-                  duration: 5000,
-                  easing: "linear",
-                  from: 1,
-                  to: 0,
-                  loop: true,
-                },
-              },
-            }}
-            data={{
-              labels: numEvents.map(
-                (d) =>
-                  `${Math.floor(
-                    (new Date().getTime() - d.time) / 1000
-                  )} seconds ago`
-              ),
-              datasets: [
-                {
-                  borderColor: borderColors[5],
-                  backgroundColor: backgroundColors[5],
-                  label: `Events per seconds`,
-                  data: numEvents.map((d) => d.num),
-                },
-              ],
-            }}
-          />
+
           <Space />
         </ScrollArea>
+      </div>
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          padding: 10,
+          right: 20,
+          zIndex: 2,
+          width: "80%",
+        }}
+      >
+        <Line
+          options={{
+            ...chartsOptions,
+            elements: {
+              point: {
+                radius: 0,
+              },
+            },
+            aspectRatio: 6,
+            animations: {
+              tension: {
+                duration: 5000,
+                easing: "linear",
+                from: 1,
+                to: 0,
+                loop: true,
+              },
+            },
+          }}
+          data={{
+            labels: numEvents.map(
+              (d) =>
+                `${Math.floor(
+                  (new Date().getTime() - d.time) / 1000
+                )} seconds ago`
+            ),
+            datasets: [
+              {
+                borderColor: borderColors[5],
+                backgroundColor: backgroundColors[5],
+                label: `Events per seconds`,
+                data: numEvents.map((d) => d.num),
+              },
+            ],
+          }}
+        />
       </div>
     </>
   );
 };
-
-/**
- * 
- * 
- * <Doughnut
-            options={{ ...chartsOptions }}
-            data={{
-              labels: Object.keys(eventsByRegion),
-              datasets: [
-                {
-                  backgroundColor: [...backgroundColors],
-                  borderColor: [...borderColors],
-                  label: "Events per region",
-                  data: Object.values(eventsByRegion).map(
-                    (byRegion) => byRegion.length
-                  ),
-                },
-              ],
-            }}
-          />
- */

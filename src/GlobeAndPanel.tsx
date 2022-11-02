@@ -8,6 +8,7 @@ import {
   Drawer,
   Group,
   NumberInput,
+  PasswordInput,
   ScrollArea,
   Select,
   Stack,
@@ -50,6 +51,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
     force(query.renderRings, false)
   );
   const [renderArcs, setRenderArcs] = useState(force(query.renderArcs, true));
+  const [pw, setPw] = useState("");
 
   const [animate, setAnimate] = useState(force(query.animate, true));
   const [rotate, setRotate] = useState(force(query.rotate, true));
@@ -106,6 +108,18 @@ export const GlobeAndPanel: FunctionComponent = () => {
       >
         <Stack>
           <ScrollArea style={{ height: "90vh" }} offsetScrollbars>
+            <PasswordInput
+              placeholder="Password"
+              label="Password"
+              value={pw}
+              onKeyUp={(e) => {
+                if (e.key === "Enter") {
+                  localStorage.setItem("pw", pw);
+                  window.location.reload();
+                }
+              }}
+              onChange={(event) => setPw(event.currentTarget.value)}
+            />
             <Checkbox
               label="Render rings"
               checked={renderRings}

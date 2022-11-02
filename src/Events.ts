@@ -7,6 +7,7 @@ export interface LiveEvent {
   region: "us-east-1";
   timestamp: number;
   type: string;
+  price?: number;
 }
 
 export const AWSRegionGeo = {
@@ -43,5 +44,6 @@ export const EventTypeColors: Record<string, number> = {
   "api.analytics.collect": 4,
 };
 
-export const LambdaURL =
-  "https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws";
+export const LambdaURL = `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?password=${localStorage.getItem(
+  "pw"
+)}`;

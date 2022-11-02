@@ -85,11 +85,12 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 
   const emitArc = async () => {
     const res = (await (
-      await fetch(`${LambdaURL}/?last=${tickSpeed}`)
+      await fetch(`${LambdaURL}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
 
     const datum = res.map((liveEvent) => {
-      const color = BorderColors[EventTypeColors[liveEvent.type]];
+      const color =
+        BorderColors[EventTypeColors[liveEvent.type]] || BorderColors[0];
       const lattitude = Number(liveEvent.lat);
       const longitude = Number(liveEvent.long);
       const timestamp = new Date().getTime();
@@ -97,9 +98,9 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       return {
         arc: {
           startLat: lattitude,
-          endLat: AWSRegionGeo['us-east-1'].lat,
+          endLat: AWSRegionGeo["us-east-1"].lat,
           startLng: longitude,
-          endLng: AWSRegionGeo['us-east-1'].lng,
+          endLng: AWSRegionGeo["us-east-1"].lng,
           color,
           timestamp,
         } as ArcData,
