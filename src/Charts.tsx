@@ -1,7 +1,7 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
 import { Bar, Line, Pie } from "react-chartjs-2";
-import { ScrollArea, Space } from "@mantine/core";
+import { ScrollArea, Space, Text } from "@mantine/core";
 import { LambdaURL, LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
 
@@ -27,7 +27,9 @@ const borderColors = [
   "rgba(255, 159, 64, 1)",
 ];
 
-export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
+export const Charts: FunctionComponent<ChartsProps> = ({
+  tickSpeed = 1000,
+}) => {
   const [numEvents, setNumEvents] = useState<
     Array<{ num: number; time: number }>
   >([]);
@@ -36,6 +38,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
   );*/
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
+  const [latency, setLatency] = useState<Number>(0);
   const [animationTick, setAnimationTick] = useState(0);
   const chartsOptions = {
     responsive: true,
@@ -44,20 +47,16 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
 
   const emitData = async () => {
     const resFast = (await (
-      await fetch(`${LambdaURL}/?last=${tickSpeed * 10}`)
-    ).json()) as LiveEvent[];
-
-    const resSlow = (await (
-      await fetch(`${LambdaURL}/?last=${2000}`)
+      await fetch(`${LambdaURL}/?last=${tickSpeed}`)
     ).json()) as LiveEvent[];
 
     const numberOfEvents = resFast.length;
-    const byTypes = groupBy(resSlow, (r) =>
+    const byTypes = groupBy(resFast, (r) =>
       r.type.replace("api.analytics.", "")
     );
     //const byRegion = groupBy(resSlow, (r) => r.region);
     const byCity = groupBy(
-      resSlow.filter((d) => d.city !== "null" && d.city !== null),
+      resFast.filter((d) => d.city !== "null" && d.city !== null),
       (r) => r.city
     );
 
@@ -76,6 +75,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
     }
 
     setNumEvents(newNumEvents);
+    setLatency((new Date().getTime() - resFast[0]?.timestamp) / 1000);
     setAnimationTick(animationTick + 1);
   };
 
@@ -139,6 +139,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({ tickSpeed = 100 }) => {
         }}
       >
         <ScrollArea style={{ height: "100%" }}>
+          <Text size="xl" color="white" weight="bold">
+            Current latency: {latency.toString()} seconds
+          </Text>
           <Pie
             options={{ ...chartsOptions }}
             data={{

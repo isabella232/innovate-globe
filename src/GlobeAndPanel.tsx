@@ -54,9 +54,9 @@ export const GlobeAndPanel: FunctionComponent = () => {
   const [animate, setAnimate] = useState(force(query.animate, true));
   const [rotate, setRotate] = useState(force(query.rotate, true));
   const [debug, setDebug] = useState(force(query.debug, false));
-  const [tickSpeed, setTickSpeed] = useState(force(query.tickSpeed, 500));
+  const [tickSpeed, setTickSpeed] = useState(force(query.tickSpeed, 1000));
   const [numRings, setNumRings] = useState(force(query.numRings, 1));
-  const [flightTime, setFlightTime] = useState(force(query.flightTime, 2000));
+  const [flightTime, setFlightTime] = useState(force(query.flightTime, 4000));
   const [arcRelativeLength, setArcRelativeLength] = useState(
     force(query.arcRelLength, 0.5)
   );

@@ -5,7 +5,7 @@ export interface LiveEvent {
   lat: string;
   long: string;
   region: "us-east-1";
-  timestamp: string;
+  timestamp: number;
   type: string;
 }
 
