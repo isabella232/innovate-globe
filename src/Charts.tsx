@@ -82,7 +82,11 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     setMoney(money + newMoney);
     setNumEvents(newNumEvents);
     if (resFast[0]) {
-      setLatency((new Date().getTime() - resFast[0]?.timestamp) / 1000);
+      const total = resFast.reduce((previous, current) => {
+        return current.timestamp + previous;
+      }, 0);
+      const mean = total / resFast.length;
+      setLatency(Math.round((new Date().getTime() - mean) / 1000));
     } else {
       setLatency(0);
     }
@@ -100,17 +104,22 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationTick]);
 
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+
   return (
     <>
       <div
         style={{
           position: "fixed",
-          bottom: "15%",
+          bottom: 10,
           padding: 10,
           left: 0,
           top: 50,
           zIndex: 2,
-          width: "25%",
+          width: "15%",
         }}
       >
         <ScrollArea style={{ height: "100%" }}>
@@ -150,12 +159,30 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         }}
       >
         <ScrollArea style={{ height: "100%" }}>
-          <Text size="xl" color="white" weight="bold">
-            Current latency: {latency.toString()} seconds
+          <Text size="xl" weight="bold" color="white">
+            Add to cart amount:
+          </Text>
+          <Text color="green" size={30}>
+            {formatter.format(money)}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Add to cart amount: {money.toFixed().toString()} $
+            Current latency:
           </Text>
+          <Text
+            size={30}
+            color={
+              latency === 0
+                ? "grey"
+                : latency < 5
+                ? "green"
+                : latency < 20
+                ? "yellow"
+                : "red"
+            }
+          >
+            {latency.toString()} seconds
+          </Text>
+
           <Pie
             options={{ ...chartsOptions }}
             data={{
