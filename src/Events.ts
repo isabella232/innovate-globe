@@ -44,6 +44,6 @@ export const EventTypeColors: Record<string, number> = {
   "api.analytics.collect": 4,
 };
 
-export const LambdaURL = `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?password=${localStorage.getItem(
+export const LambdaURL = `https://rha5ieunhnmgc3d4xtsow4dj240mggtt.lambda-url.us-east-1.on.aws/?password=${localStorage.getItem(
   "pw"
 )}`;
