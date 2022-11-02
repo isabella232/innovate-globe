@@ -47,7 +47,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
   }
 
   const [renderRings, setRenderRings] = useState(
-    force(query.renderRings, true)
+    force(query.renderRings, false)
   );
   const [renderArcs, setRenderArcs] = useState(force(query.renderArcs, true));
 
