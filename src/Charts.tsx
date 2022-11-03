@@ -2,7 +2,7 @@ import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
 import { Bar, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space, Text } from "@mantine/core";
-import { LambdaURLAu, LambdaURLEU, LambdaURLUsEast, LiveEvent } from "./Events";
+import { LambdaURLUsEast, LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
 
 export interface ChartsProps {
