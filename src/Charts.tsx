@@ -52,9 +52,12 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     ).json()) as LiveEvent[];
 
     const numberOfEvents = resFast.length;
-    const byTypes = groupBy(resFast, (r) =>
-      r.type.replace("api.analytics.", "")
-    );
+    const byTypes = groupBy(resFast, (r) => {
+      if (r.type === "event") {
+        return r.productAction!;
+      }
+      return r.type.replace("api.analytics.", "");
+    });
     //const byRegion = groupBy(resSlow, (r) => r.region);
     const byCity = groupBy(
       resFast.filter((d) => d.city !== "null" && d.city !== null),
@@ -73,7 +76,11 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     }
     const newMoney = resFast.reduce((prev, current) => {
       if (current.price) {
-        return prev + Number(current.price);
+        if (typeof current.price === "string") {
+          return prev + Number(current.price.replaceAll('"', ""));
+        } else {
+          return prev + current.price;
+        }
       } else {
         return prev;
       }

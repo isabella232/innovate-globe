@@ -24,6 +24,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
   const [query, setQuery] = useQueryParams({
     renderRings: BooleanParam,
     renderArcs: BooleanParam,
+    renderLabels: BooleanParam,
     animate: BooleanParam,
     rotate: BooleanParam,
     debug: BooleanParam,
@@ -47,11 +48,15 @@ export const GlobeAndPanel: FunctionComponent = () => {
     return v !== null && v !== undefined ? v : fallback;
   }
 
+  const [pw, setPw] = useState("");
+
   const [renderRings, setRenderRings] = useState(
     force(query.renderRings, false)
   );
   const [renderArcs, setRenderArcs] = useState(force(query.renderArcs, true));
-  const [pw, setPw] = useState("");
+  const [renderLabels, setRenderLabels] = useState(
+    force(query.renderLabels, false)
+  );
 
   const [animate, setAnimate] = useState(force(query.animate, true));
   const [rotate, setRotate] = useState(force(query.rotate, true));
@@ -126,6 +131,14 @@ export const GlobeAndPanel: FunctionComponent = () => {
               onChange={() => {
                 setRenderRings(!renderRings);
                 setQuery({ renderRings: !renderRings });
+              }}
+            />
+            <Checkbox
+              label="Render Labels"
+              checked={renderLabels}
+              onChange={() => {
+                setRenderLabels(!renderLabels);
+                setQuery({ renderLabels: !renderLabels });
               }}
             />
             <Checkbox
@@ -330,6 +343,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
         autoRotate={rotate}
         renderRings={renderRings}
         renderArcs={renderArcs}
+        renderLabels={renderLabels}
         anim={animate}
         debug={debug}
         tickSpeed={tickSpeed}

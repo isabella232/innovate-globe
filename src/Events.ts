@@ -7,7 +7,8 @@ export interface LiveEvent {
   region: "us-east-1";
   timestamp: number;
   type: string;
-  price?: number;
+  productAction?: string;
+  price?: string | number;
 }
 
 export const AWSRegionGeo = {

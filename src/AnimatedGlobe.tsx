@@ -37,6 +37,7 @@ interface LabelData {
 interface AnimatedGlobeProps {
   renderRings: boolean;
   renderArcs: boolean;
+  renderLabels: boolean;
   anim: boolean;
   autoRotate: boolean;
   debug: boolean;
@@ -59,6 +60,7 @@ interface AnimatedGlobeProps {
 export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
   renderRings,
   renderArcs,
+  renderLabels,
   anim,
   autoRotate,
   debug,
@@ -121,7 +123,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 
     const arcs = datum.map((d) => d.arc);
     const sourceRings = datum.map((d) => d.sourceRing);
-    const labels = datum.map((d) => d.label);
+    const labels = renderLabels ? datum.map((d) => d.label) : [];
     const evictionTimeForArcs = flightTime * 2;
     const evictionTimeForRings = flightTime * arcRelativeLength;
     const evictionTimeForLabels = flightTime;
@@ -227,7 +229,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
                 text: `Labels: ${labelsData.length}`,
               },
             ].concat(labelsData)
-          : [...labelsData]
+          : [labelsData]
       }
       labelSize={() => 1}
       labelAltitude={0}
