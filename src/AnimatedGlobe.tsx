@@ -5,6 +5,8 @@ import {
   AWSRegionGeo,
   BorderColors,
   EventTypeColors,
+  LambdaURLAu,
+  LambdaURLEU,
   LambdaURLUsEast,
   LiveEvent,
 } from "./Events";
@@ -89,12 +91,12 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     const resUsEast = (await (
       await fetch(`${LambdaURLUsEast}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
-    const resEu: LiveEvent[] = []; /* (await (
+    const resEu: LiveEvent[] = (await (
       await fetch(`${LambdaURLEU}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];*/
-    const resAu: LiveEvent[] = []; /*(await (
+    ).json()) as LiveEvent[];
+    const resAu: LiveEvent[] = (await (
       await fetch(`${LambdaURLAu}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];*/
+    ).json()) as LiveEvent[];
 
     type validRegions = "us-east-1" | "eu-west-1" | "ap-southeast-2";
 
@@ -140,15 +142,14 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     const arcs = datum.map((d) => d.arc);
     const sourceRings = datum.map((d) => d.sourceRing);
     const labels = renderLabels ? datum.map((d) => d.label) : [];
-    const evictionTimeForArcs = flightTime * 2;
+    const evictionTimeForArcs = flightTime;
     const evictionTimeForRings = flightTime * arcRelativeLength;
     const evictionTimeForLabels = flightTime;
 
     setArcsData((arcsData: ArcData[]) => {
+      const now = Date.now();
       const filteredArcs = arcsData.filter((d) => {
-        return (
-          Math.abs(d.timestamp - new Date().getTime()) <= evictionTimeForArcs
-        );
+        return Math.abs(d.timestamp - now) <= evictionTimeForArcs;
       });
       return [...filteredArcs, ...arcs];
     });
@@ -282,6 +283,14 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       htmlElementsData={[
         {
           ...AWSRegionGeo["us-east-1"],
+          size: 1,
+        },
+        {
+          ...AWSRegionGeo["eu-west-1"],
+          size: 1,
+        },
+        {
+          ...AWSRegionGeo["ap-southeast-2"],
           size: 1,
         },
       ].concat([])}

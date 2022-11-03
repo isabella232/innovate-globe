@@ -17,12 +17,12 @@ export const AWSRegionGeo = {
     lng: -78.024902,
   },
   "eu-west-1": {
-    lat: 53.3498,
+    lat: 53.350140,
     lng: 6.2603,
   },
   "ap-southeast-2": {
-    lat: 33.8688,
-    lng: 151.2093,
+    lat: -33.865143,
+    lng: 151.2099,
   },
 };
 

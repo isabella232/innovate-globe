@@ -2,7 +2,7 @@ import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
 import { Bar, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space, Text } from "@mantine/core";
-import { LambdaURLUsEast, LiveEvent } from "./Events";
+import { LambdaURLAu, LambdaURLEU, LambdaURLUsEast, LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
 
 export interface ChartsProps {
@@ -41,7 +41,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({
   >([]);
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
-  const [latency, setLatency] = useState<number>(0);
+  const [latencyUs, setLatencyUs] = useState<number>(0);
+  const [latencyEu, setLatencyEu] = useState<number>(0);
+  const [latencyAu, setLatencyAu] = useState<number>(0);
   const [money, setMoney] = useState<number>(0);
   const [animationTick, setAnimationTick] = useState(0);
   const chartsOptions = {
@@ -53,14 +55,14 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const resUs: LiveEvent[] = (await (
       await fetch(`${LambdaURLUsEast}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
-    const resEu: LiveEvent[] = []; /* (await (
+    const resEu: LiveEvent[] = (await (
       await fetch(`${LambdaURLEU}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];*/
-    const resAp: LiveEvent[] = []; /*(await (
+    ).json()) as LiveEvent[];
+    const resAu: LiveEvent[] = (await (
       await fetch(`${LambdaURLAu}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];*/
+    ).json()) as LiveEvent[];
 
-    const allRes = [...resUs, ...resEu, ...resAp];
+    const allRes = [...resUs, ...resEu, ...resAu];
 
     const byTypes = groupBy(allRes, (r) => {
       if (r.type === "event") {
@@ -73,16 +75,18 @@ export const Charts: FunctionComponent<ChartsProps> = ({
       (r) => r.city
     );
 
+    const now = Date.now();
+
     const newNumEventsUs = numEventsUs
-      .concat({ num: resUs.length, time: new Date().getTime() })
+      .concat({ num: resUs.length, time: now })
       .slice(-100);
 
     const newNumEventsEu = numEventsEu
-      .concat({ num: resEu.length, time: new Date().getTime() })
+      .concat({ num: resEu.length, time: now })
       .slice(-100);
 
     const newNumEventsAu = numEventsAu
-      .concat({ num: resAp.length, time: new Date().getTime() })
+      .concat({ num: resAu.length, time: now })
       .slice(-100);
 
     if (Object.keys(byTypes).length && animationTick % 5 === 0) {
@@ -94,9 +98,11 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const newMoney = resUs.reduce((prev, current) => {
       if (current.price) {
         if (typeof current.price === "string") {
-          return prev + Number(current.price.replaceAll('"', ""));
+          const replaced = Number(current.price.replaceAll('"', ""));
+          const numSafe = isNaN(replaced) ? 0 : replaced;
+          return prev + numSafe;
         } else {
-          return prev + current.price;
+          return prev + (isNaN(current.price) ? 0 : current.price);
         }
       } else {
         return prev;
@@ -107,14 +113,29 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     setNumEventsUs(newNumEventsUs);
     setNumEventsEu(newNumEventsEu);
     setNumEventsAu(newNumEventsAu);
+
     if (resUs[0]) {
       const total = resUs.reduce((previous, current) => {
         return current.timestamp + previous;
       }, 0);
       const mean = total / resUs.length;
-      setLatency(Math.round((new Date().getTime() - mean) / 1000));
-    } else {
-      setLatency(0);
+      setLatencyUs(Math.round((new Date().getTime() - mean) / 1000));
+    }
+
+    if (resEu[0]) {
+      const total = resEu.reduce((previous, current) => {
+        return current.timestamp + previous;
+      }, 0);
+      const mean = total / resEu.length;
+      setLatencyEu(Math.round((new Date().getTime() - mean) / 1000));
+    }
+
+    if (resAu[0]) {
+      const total = resAu.reduce((previous, current) => {
+        return current.timestamp + previous;
+      }, 0);
+      const mean = total / resAu.length;
+      setLatencyAu(Math.round((new Date().getTime() - mean) / 1000));
     }
 
     setAnimationTick(animationTick + 1);
@@ -197,21 +218,55 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             {formatter.format(money)}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Current latency:
+            Latency(us-east-1):
           </Text>
           <Text
             size={30}
             color={
-              latency === 0
+              latencyUs === 0
                 ? "grey"
-                : latency < 5
+                : latencyUs < 5
                 ? "green"
-                : latency < 20
+                : latencyUs < 20
                 ? "yellow"
                 : "red"
             }
           >
-            {latency.toString()} seconds
+            {latencyUs.toString()} seconds
+          </Text>
+          <Text size="xl" color="white" weight="bold">
+            Latency(eu-west-1):
+          </Text>
+          <Text
+            size={30}
+            color={
+              latencyEu === 0
+                ? "grey"
+                : latencyEu < 5
+                ? "green"
+                : latencyEu < 20
+                ? "yellow"
+                : "red"
+            }
+          >
+            {latencyEu.toString()} seconds
+          </Text>
+          <Text size="xl" color="white" weight="bold">
+            Latency(ap-southeast-2):
+          </Text>
+          <Text
+            size={30}
+            color={
+              latencyAu === 0
+                ? "grey"
+                : latencyAu < 5
+                ? "green"
+                : latencyAu < 20
+                ? "yellow"
+                : "red"
+            }
+          >
+            {latencyAu.toString()} seconds
           </Text>
 
           <Pie
