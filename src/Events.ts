@@ -16,6 +16,14 @@ export const AWSRegionGeo = {
     lat: 37.926868,
     lng: -78.024902,
   },
+  "eu-west-1": {
+    lat: 53.3498,
+    lng: 6.2603,
+  },
+  "ap-southeast-2": {
+    lat: 33.8688,
+    lng: 151.2093,
+  },
 };
 
 export const BackgroundColors = [
@@ -45,6 +53,14 @@ export const EventTypeColors: Record<string, number> = {
   "api.analytics.collect": 4,
 };
 
-export const LambdaURL = `https://rha5ieunhnmgc3d4xtsow4dj240mggtt.lambda-url.us-east-1.on.aws/?password=${localStorage.getItem(
+export const LambdaURLUsEast = `https://rha5ieunhnmgc3d4xtsow4dj240mggtt.lambda-url.us-east-1.on.aws/?password=${localStorage.getItem(
+  "pw"
+)}`;
+
+export const LambdaURLEU = `https://c6xdcpmacp66i4njcrrwatb73i0opcjr.lambda-url.eu-west-1.on.aws/?password=${localStorage.getItem(
+  "pw"
+)}`;
+
+export const LambdaURLAu = `https://72fup7tch7frsprfdvbctvaiv40sommb.lambda-url.ap-southeast-2.on.aws/?password=${localStorage.getItem(
   "pw"
 )}`;

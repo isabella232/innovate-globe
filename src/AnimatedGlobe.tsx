@@ -5,7 +5,7 @@ import {
   AWSRegionGeo,
   BorderColors,
   EventTypeColors,
-  LambdaURL,
+  LambdaURLUsEast,
   LiveEvent,
 } from "./Events";
 import { uniqBy } from "lodash";
@@ -86,39 +86,55 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
   const globeRef = useRef<GlobeMethods>();
 
   const emitArc = async () => {
-    const res = (await (
-      await fetch(`${LambdaURL}&last=${tickSpeed}`)
+    const resUsEast = (await (
+      await fetch(`${LambdaURLUsEast}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
+    const resEu: LiveEvent[] = []; /* (await (
+      await fetch(`${LambdaURLEU}&last=${tickSpeed}`)
+    ).json()) as LiveEvent[];*/
+    const resAu: LiveEvent[] = []; /*(await (
+      await fetch(`${LambdaURLAu}&last=${tickSpeed}`)
+    ).json()) as LiveEvent[];*/
 
-    const datum = res.map((liveEvent) => {
-      const color =
-        BorderColors[EventTypeColors[liveEvent.type]] || BorderColors[0];
-      const lattitude = Number(liveEvent.lat);
-      const longitude = Number(liveEvent.long);
-      const timestamp = new Date().getTime();
+    type validRegions = "us-east-1" | "eu-west-1" | "ap-southeast-2";
 
-      return {
-        arc: {
-          startLat: lattitude,
-          endLat: AWSRegionGeo["us-east-1"].lat,
-          startLng: longitude,
-          endLng: AWSRegionGeo["us-east-1"].lng,
-          color,
-          timestamp,
-        } as ArcData,
-        sourceRing: {
-          color,
-          lat: lattitude,
-          lng: longitude,
-          timestamp,
-        } as RingData,
-        label: {
-          lat: lattitude,
-          lng: longitude,
-          text: liveEvent.city,
-          timestamp,
-        } as LabelData,
-      };
+    const resTotal: Record<validRegions, LiveEvent[]> = {
+      "us-east-1": resUsEast,
+      "eu-west-1": resEu,
+      "ap-southeast-2": resAu,
+    };
+
+    const datum = Object.entries(resTotal).flatMap(([region, liveEvents]) => {
+      return liveEvents.map((liveEvent) => {
+        const color =
+          BorderColors[EventTypeColors[liveEvent.type]] || BorderColors[0];
+        const lattitude = Number(liveEvent.lat);
+        const longitude = Number(liveEvent.long);
+        const timestamp = new Date().getTime();
+
+        return {
+          arc: {
+            startLat: lattitude,
+            endLat: AWSRegionGeo[region as validRegions].lat,
+            startLng: longitude,
+            endLng: AWSRegionGeo[region as validRegions].lng,
+            color,
+            timestamp,
+          } as ArcData,
+          sourceRing: {
+            color,
+            lat: lattitude,
+            lng: longitude,
+            timestamp,
+          } as RingData,
+          label: {
+            lat: lattitude,
+            lng: longitude,
+            text: liveEvent.city,
+            timestamp,
+          } as LabelData,
+        };
+      });
     });
 
     const arcs = datum.map((d) => d.arc);
@@ -229,7 +245,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
                 text: `Labels: ${labelsData.length}`,
               },
             ].concat(labelsData)
-          : [labelsData]
+          : labelsData
       }
       labelSize={() => 1}
       labelAltitude={0}

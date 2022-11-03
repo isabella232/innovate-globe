@@ -2,7 +2,7 @@ import { FunctionComponent, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
 import { Bar, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space, Text } from "@mantine/core";
-import { LambdaURL, LiveEvent } from "./Events";
+import { LambdaURLAu, LambdaURLEU, LambdaURLUsEast, LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
 
 export interface ChartsProps {
@@ -30,12 +30,15 @@ const borderColors = [
 export const Charts: FunctionComponent<ChartsProps> = ({
   tickSpeed = 1000,
 }) => {
-  const [numEvents, setNumEvents] = useState<
+  const [numEventsUs, setNumEventsUs] = useState<
     Array<{ num: number; time: number }>
   >([]);
-  /*const [eventsByRegion, setEventsByRegion] = useState<Dictionary<LiveEvent[]>>(
-    {}
-  );*/
+  const [numEventsEu, setNumEventsEu] = useState<
+    Array<{ num: number; time: number }>
+  >([]);
+  const [numEventsAu, setNumEventsAu] = useState<
+    Array<{ num: number; time: number }>
+  >([]);
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
   const [latency, setLatency] = useState<number>(0);
@@ -47,25 +50,39 @@ export const Charts: FunctionComponent<ChartsProps> = ({
   };
 
   const emitData = async () => {
-    const resFast = (await (
-      await fetch(`${LambdaURL}&last=${tickSpeed}`)
+    const resUs: LiveEvent[] = (await (
+      await fetch(`${LambdaURLUsEast}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
+    const resEu: LiveEvent[] = []; /* (await (
+      await fetch(`${LambdaURLEU}&last=${tickSpeed}`)
+    ).json()) as LiveEvent[];*/
+    const resAp: LiveEvent[] = []; /*(await (
+      await fetch(`${LambdaURLAu}&last=${tickSpeed}`)
+    ).json()) as LiveEvent[];*/
 
-    const numberOfEvents = resFast.length;
-    const byTypes = groupBy(resFast, (r) => {
+    const allRes = [...resUs, ...resEu, ...resAp];
+
+    const byTypes = groupBy(allRes, (r) => {
       if (r.type === "event") {
         return r.productAction!;
       }
       return r.type.replace("api.analytics.", "");
     });
-    //const byRegion = groupBy(resSlow, (r) => r.region);
     const byCity = groupBy(
-      resFast.filter((d) => d.city !== "null" && d.city !== null),
+      allRes.filter((d) => d.city !== "null" && d.city !== null),
       (r) => r.city
     );
 
-    const newNumEvents = numEvents
-      .concat({ num: numberOfEvents, time: new Date().getTime() })
+    const newNumEventsUs = numEventsUs
+      .concat({ num: resUs.length, time: new Date().getTime() })
+      .slice(-100);
+
+    const newNumEventsEu = numEventsEu
+      .concat({ num: resEu.length, time: new Date().getTime() })
+      .slice(-100);
+
+    const newNumEventsAu = numEventsAu
+      .concat({ num: resAp.length, time: new Date().getTime() })
       .slice(-100);
 
     if (Object.keys(byTypes).length && animationTick % 5 === 0) {
@@ -74,7 +91,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     if (Object.keys(byCity).length && animationTick % 5 === 0) {
       setEventsByCity(byCity);
     }
-    const newMoney = resFast.reduce((prev, current) => {
+    const newMoney = resUs.reduce((prev, current) => {
       if (current.price) {
         if (typeof current.price === "string") {
           return prev + Number(current.price.replaceAll('"', ""));
@@ -87,12 +104,14 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     }, 0);
 
     setMoney(money + newMoney);
-    setNumEvents(newNumEvents);
-    if (resFast[0]) {
-      const total = resFast.reduce((previous, current) => {
+    setNumEventsUs(newNumEventsUs);
+    setNumEventsEu(newNumEventsEu);
+    setNumEventsAu(newNumEventsAu);
+    if (resUs[0]) {
+      const total = resUs.reduce((previous, current) => {
         return current.timestamp + previous;
       }, 0);
-      const mean = total / resFast.length;
+      const mean = total / resUs.length;
       setLatency(Math.round((new Date().getTime() - mean) / 1000));
     } else {
       setLatency(0);
@@ -245,7 +264,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             },
           }}
           data={{
-            labels: numEvents.map(
+            labels: numEventsUs.map(
               (d) =>
                 `${Math.floor(
                   (new Date().getTime() - d.time) / 1000
@@ -255,8 +274,20 @@ export const Charts: FunctionComponent<ChartsProps> = ({
               {
                 borderColor: borderColors[5],
                 backgroundColor: backgroundColors[5],
-                label: `Events per seconds`,
-                data: numEvents.map((d) => d.num),
+                label: `us-east-1`,
+                data: numEventsUs.map((d) => d.num),
+              },
+              {
+                borderColor: borderColors[4],
+                backgroundColor: backgroundColors[4],
+                label: `eu-west-1`,
+                data: numEventsEu.map((d) => d.num),
+              },
+              {
+                borderColor: borderColors[3],
+                backgroundColor: backgroundColors[3],
+                label: `ap-southeast-2`,
+                data: numEventsAu.map((d) => d.num),
               },
             ],
           }}
