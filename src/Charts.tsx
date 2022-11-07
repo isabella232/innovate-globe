@@ -208,7 +208,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
       <div
         style={{
           position: "fixed",
-          top: "15%",
+          top: "5%",
           padding: 10,
           right: 20,
           zIndex: 2,
