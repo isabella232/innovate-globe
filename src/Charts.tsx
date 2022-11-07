@@ -228,19 +228,19 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             {formatter.format(money)}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Events per seconds (us-east-1):
+            Events per second (us-east-1):
           </Text>
           <Text size={30} color={eventsPerSecondsUS === 0 ? "grey" : "green"}>
             {eventsPerSecondsUS.toString()}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Events per seconds (eu-west-1):
+            Events per second (eu-west-1):
           </Text>
           <Text size={30} color={eventsPerSecondsEu === 0 ? "grey" : "green"}>
             {eventsPerSecondsEu.toString()}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Events per seconds (ap-southeast-2):
+            Events per second (ap-southeast-2):
           </Text>
           <Text size={30} color={eventsPerSecondsAu === 0 ? "grey" : "green"}>
             {eventsPerSecondsAu.toString()}
