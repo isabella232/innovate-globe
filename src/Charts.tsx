@@ -156,6 +156,16 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     currency: "USD",
   });
 
+  const qpsUs = numEventsUs.length
+    ? numEventsUs[numEventsUs.length - 1].num
+    : 0;
+  const qpsEu = numEventsEu.length
+    ? numEventsEu[numEventsEu.length - 1].num
+    : 0;
+  const qpsAu = numEventsAu.length
+    ? numEventsAu[numEventsAu.length - 1].num
+    : 0;
+
   return (
     <>
       <div
@@ -218,55 +228,22 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             {formatter.format(money)}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Latency(us-east-1):
+            QPS (us-east-1):
           </Text>
-          <Text
-            size={30}
-            color={
-              latencyUs === 0
-                ? "grey"
-                : latencyUs < 5
-                ? "green"
-                : latencyUs < 20
-                ? "yellow"
-                : "red"
-            }
-          >
-            {latencyUs.toString()} seconds
+          <Text size={30} color={qpsUs === 0 ? "grey" : "green"}>
+            {qpsUs.toString()}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Latency(eu-west-1):
+            QPS (eu-west-1):
           </Text>
-          <Text
-            size={30}
-            color={
-              latencyEu === 0
-                ? "grey"
-                : latencyEu < 5
-                ? "green"
-                : latencyEu < 20
-                ? "yellow"
-                : "red"
-            }
-          >
-            {latencyEu.toString()} seconds
+          <Text size={30} color={qpsEu === 0 ? "grey" : "green"}>
+            {qpsEu.toString()}
           </Text>
           <Text size="xl" color="white" weight="bold">
-            Latency(ap-southeast-2):
+            QPS (ap-southeast-2):
           </Text>
-          <Text
-            size={30}
-            color={
-              latencyAu === 0
-                ? "grey"
-                : latencyAu < 5
-                ? "green"
-                : latencyAu < 20
-                ? "yellow"
-                : "red"
-            }
-          >
-            {latencyAu.toString()} seconds
+          <Text size={30} color={qpsAu === 0 ? "grey" : "green"}>
+            {qpsAu.toString()}
           </Text>
 
           <Pie
@@ -347,6 +324,69 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             ],
           }}
         />
+      </div>
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          padding: 10,
+          left: 20,
+          zIndex: 2,
+          width: "15%",
+        }}
+      >
+        <Text size="xl" color="white" weight="bold">
+          Latency(us-east-1):
+        </Text>
+        <Text
+          size={30}
+          color={
+            latencyUs === 0
+              ? "grey"
+              : latencyUs < 5
+              ? "green"
+              : latencyUs < 20
+              ? "yellow"
+              : "red"
+          }
+        >
+          {latencyUs.toString()} seconds
+        </Text>
+        <Text size="xl" color="white" weight="bold">
+          Latency(eu-west-1):
+        </Text>
+        <Text
+          size={30}
+          color={
+            latencyEu === 0
+              ? "grey"
+              : latencyEu < 5
+              ? "green"
+              : latencyEu < 20
+              ? "yellow"
+              : "red"
+          }
+        >
+          {latencyEu.toString()} seconds
+        </Text>
+        <Text size="xl" color="white" weight="bold">
+          Latency(ap-southeast-2):
+        </Text>
+        <Text
+          size={30}
+          color={
+            latencyAu === 0
+              ? "grey"
+              : latencyAu < 5
+              ? "green"
+              : latencyAu < 20
+              ? "yellow"
+              : "red"
+          }
+        >
+          {latencyAu.toString()} seconds
+        </Text>
       </div>
     </>
   );
