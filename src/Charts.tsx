@@ -4,6 +4,7 @@ import { Bar, Line, Pie } from "react-chartjs-2";
 import { ScrollArea, Space, Text } from "@mantine/core";
 import { LambdaURLAu, LambdaURLEU, LambdaURLUsEast, LiveEvent } from "./Events";
 import { Dictionary, groupBy } from "lodash";
+import axios, { AxiosInstance } from "axios";
 
 export interface ChartsProps {
   tickSpeed?: number;
@@ -27,6 +28,10 @@ const borderColors = [
   "rgba(255, 159, 64, 1)",
 ];
 
+const euClient: AxiosInstance = axios.create();
+const usClient: AxiosInstance = axios.create();
+const auClient: AxiosInstance = axios.create();
+
 export const Charts: FunctionComponent<ChartsProps> = ({
   tickSpeed = 1000,
 }) => {
@@ -39,114 +44,269 @@ export const Charts: FunctionComponent<ChartsProps> = ({
   const [numEventsAu, setNumEventsAu] = useState<
     Array<{ num: number; time: number }>
   >([]);
+  const [newNumEventsUs, setNewNumEventsUs] = useState<
+    Array<{ num: number; time: number }>
+  >([]);
+  const [newNumEventsEu, setNewNumEventsEu] = useState<
+    Array<{ num: number; time: number }>
+  >([]);
+  const [newNumEventsAu, setNewNumEventsAu] = useState<
+    Array<{ num: number; time: number }>
+  >([]);
   const [eventsByCity, setEventsByCity] = useState<Dictionary<LiveEvent[]>>({});
   const [eventsByType, setEventsByType] = useState<Dictionary<LiveEvent[]>>({});
+  const [newEventsByCity, setNewEventsByCity] = useState<
+    Dictionary<LiveEvent[]>
+  >({});
+  const [newEventsByType, setNewEventsByType] = useState<
+    Dictionary<LiveEvent[]>
+  >({});
   const [latencyUs, setLatencyUs] = useState<number>(0);
   const [latencyEu, setLatencyEu] = useState<number>(0);
   const [latencyAu, setLatencyAu] = useState<number>(0);
   const [money, setMoney] = useState<number>(0);
+  const [newMoneyEu, setNewMoneyEu] = useState<number>(0);
+  const [newMoneyAu, setNewMoneyAu] = useState<number>(0);
+  const [newMoneyUs, setNewMoneyUs] = useState<number>(0);
   const [animationTick, setAnimationTick] = useState(0);
   const chartsOptions = {
     responsive: true,
     color: "white",
   };
 
-  const emitData = async () => {
-    const resUs: LiveEvent[] = (await (
-      await fetch(`${LambdaURLUsEast}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];
-    const resEu: LiveEvent[] = (await (
-      await fetch(`${LambdaURLEU}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];
-    const resAu: LiveEvent[] = (await (
-      await fetch(`${LambdaURLAu}&last=${tickSpeed}`)
-    ).json()) as LiveEvent[];
+  const getUsEvents = async () => {
+    const events = await usClient
+      .get<LiveEvent[]>(`${LambdaURLUsEast}&last=${tickSpeed}`)
+      .then((res) => res.data)
+      .catch((e) => {
+        console.log(e);
+        const liveEvent: LiveEvent = {
+          city: "",
+          event_id: "",
+          inserted_at: 0,
+          lat: "",
+          long: "",
+          region: "us-east-1",
+          timestamp: 0,
+          type: "",
+        };
+        return [liveEvent];
+      });
 
-    const allRes = [...resUs, ...resEu, ...resAu];
+    const { types, cities } = await groupEvents(events);
+    setNewEventsByCity(Object.assign({}, eventsByCity, cities));
+    setNewEventsByType(Object.assign({}, eventsByType, types));
 
-    const byTypes = groupBy(allRes, (r) => {
+    const now = Date.now();
+    setNewNumEventsUs(
+      numEventsUs
+        .concat({
+          num: Math.round(events.length / (tickSpeed / 1000)),
+          time: now,
+        })
+        .slice(-100)
+    );
+
+    setNewMoneyUs(
+      events.reduce((prev, current) => {
+        if (current.price) {
+          if (typeof current.price === "string") {
+            const replaced = Number(current.price.replaceAll('"', ""));
+            const numSafe = isNaN(replaced) ? 0 : replaced;
+            return prev + numSafe;
+          } else {
+            return prev + (isNaN(current.price) ? 0 : current.price);
+          }
+        } else {
+          return prev;
+        }
+      }, 0)
+    );
+
+    if (events[0]) {
+      const total = events.reduce((previous, current) => {
+        return current.timestamp + previous;
+      }, 0);
+      const mean = total / events.length;
+      setLatencyUs(Math.round((new Date().getTime() - mean) / 1000));
+    }
+  };
+
+  const getEuEvents = async () => {
+    const events = await euClient
+      .get<LiveEvent[]>(`${LambdaURLEU}&last=${tickSpeed}`)
+      .then((res) => res.data)
+      .catch((e) => {
+        console.log(e);
+        const liveEvent: LiveEvent = {
+          city: "",
+          event_id: "",
+          inserted_at: 0,
+          lat: "",
+          long: "",
+          region: "us-east-1",
+          timestamp: 0,
+          type: "",
+        };
+        return [liveEvent];
+      });
+
+    const { types, cities } = await groupEvents(events);
+    setNewEventsByCity(Object.assign({}, eventsByCity, cities));
+    setNewEventsByType(Object.assign({}, eventsByType, types));
+
+    const now = Date.now();
+    setNewNumEventsEu(
+      numEventsEu
+        .concat({
+          num: Math.round(events.length / (tickSpeed / 1000)),
+          time: now,
+        })
+        .slice(-100)
+    );
+
+    setNewMoneyEu(
+      events.reduce((prev, current) => {
+        if (current.price) {
+          if (typeof current.price === "string") {
+            const replaced = Number(current.price.replaceAll('"', ""));
+            const numSafe = isNaN(replaced) ? 0 : replaced;
+            return prev + numSafe;
+          } else {
+            return prev + (isNaN(current.price) ? 0 : current.price);
+          }
+        } else {
+          return prev;
+        }
+      }, 0)
+    );
+
+    if (events[0]) {
+      const total = events.reduce((previous, current) => {
+        return current.timestamp + previous;
+      }, 0);
+      const mean = total / events.length;
+      setLatencyEu(Math.round((new Date().getTime() - mean) / 1000));
+    }
+  };
+
+  const getAuEvents = async () => {
+    const events = await auClient
+      .get<LiveEvent[]>(`${LambdaURLAu}&last=${tickSpeed}`)
+      .then((res) => res.data)
+      .catch((e) => {
+        console.log(e);
+        const liveEvent: LiveEvent = {
+          city: "",
+          event_id: "",
+          inserted_at: 0,
+          lat: "",
+          long: "",
+          region: "us-east-1",
+          timestamp: 0,
+          type: "",
+        };
+        return [liveEvent];
+      });
+
+    const { types, cities } = await groupEvents(events);
+    setNewEventsByCity(Object.assign({}, newEventsByCity, cities));
+    setNewEventsByType(Object.assign({}, newEventsByType, types));
+
+    const now = Date.now();
+    setNewNumEventsAu(
+      numEventsAu
+        .concat({
+          num: Math.round(events.length / (tickSpeed / 1000)),
+          time: now,
+        })
+        .slice(-100)
+    );
+
+    setNewMoneyAu(
+      events.reduce((prev, current) => {
+        if (current.price) {
+          if (typeof current.price === "string") {
+            const replaced = Number(current.price.replaceAll('"', ""));
+            const numSafe = isNaN(replaced) ? 0 : replaced;
+            return prev + numSafe;
+          } else {
+            return prev + (isNaN(current.price) ? 0 : current.price);
+          }
+        } else {
+          return prev;
+        }
+      }, 0)
+    );
+
+    if (events[0]) {
+      const total = events.reduce((previous, current) => {
+        return current.timestamp + previous;
+      }, 0);
+      const mean = total / events.length;
+      setLatencyAu(Math.round((new Date().getTime() - mean) / 1000));
+    }
+  };
+
+  const groupEvents = async (events: LiveEvent[]) => {
+    const byTypes = groupBy(events, (r) => {
       if (r.type === "event") {
         return r.productAction!;
       }
       return r.type.replace("api.analytics.", "");
     });
     const byCity = groupBy(
-      allRes.filter((d) => d.city !== "null" && d.city !== null),
+      events.filter((d) => d.city !== "null" && d.city !== null),
       (r) => r.city
     );
 
-    const now = Date.now();
+    return { types: byTypes, cities: byCity };
+  };
 
-    const newNumEventsUs = numEventsUs
-      .concat({ num: resUs.length, time: now })
-      .slice(-100);
+  const emitData = async () => {
+    const promiseAu: Promise<void> = getAuEvents();
+    const promiseEu: Promise<void> = getEuEvents();
+    const promiseUs: Promise<void> = getUsEvents();
 
-    const newNumEventsEu = numEventsEu
-      .concat({ num: resEu.length, time: now })
-      .slice(-100);
+    await Promise.all([promiseAu, promiseEu, promiseUs]);
 
-    const newNumEventsAu = numEventsAu
-      .concat({ num: resAu.length, time: now })
-      .slice(-100);
-
-    if (Object.keys(byTypes).length && animationTick % 5 === 0) {
-      setEventsByType(byTypes);
+    if (Object.keys(newEventsByType).length && animationTick % 5 === 0) {
+      setEventsByType(newEventsByType);
+      setNewEventsByType({});
     }
-    if (Object.keys(byCity).length && animationTick % 5 === 0) {
-      setEventsByCity(byCity);
-    }
-    const newMoney = resUs.reduce((prev, current) => {
-      if (current.price) {
-        if (typeof current.price === "string") {
-          const replaced = Number(current.price.replaceAll('"', ""));
-          const numSafe = isNaN(replaced) ? 0 : replaced;
-          return prev + numSafe;
-        } else {
-          return prev + (isNaN(current.price) ? 0 : current.price);
-        }
-      } else {
-        return prev;
-      }
-    }, 0);
-
-    setMoney(money + newMoney);
-    setNumEventsUs(newNumEventsUs);
-    setNumEventsEu(newNumEventsEu);
-    setNumEventsAu(newNumEventsAu);
-
-    if (resUs[0]) {
-      const total = resUs.reduce((previous, current) => {
-        return current.timestamp + previous;
-      }, 0);
-      const mean = total / resUs.length;
-      setLatencyUs(Math.round((new Date().getTime() - mean) / 1000));
+    if (Object.keys(newEventsByCity).length && animationTick % 5 === 0) {
+      setEventsByCity(newEventsByCity);
+      setNewEventsByCity({});
     }
 
-    if (resEu[0]) {
-      const total = resEu.reduce((previous, current) => {
-        return current.timestamp + previous;
-      }, 0);
-      const mean = total / resEu.length;
-      setLatencyEu(Math.round((new Date().getTime() - mean) / 1000));
+    if (newNumEventsAu.length !== 0) {
+      setNumEventsAu(newNumEventsAu);
+      setNewNumEventsAu([]);
     }
 
-    if (resAu[0]) {
-      const total = resAu.reduce((previous, current) => {
-        return current.timestamp + previous;
-      }, 0);
-      const mean = total / resAu.length;
-      setLatencyAu(Math.round((new Date().getTime() - mean) / 1000));
+    if (newNumEventsEu.length !== 0) {
+      setNumEventsEu(newNumEventsEu);
+      setNewNumEventsEu([]);
+    }
+
+    if (newNumEventsUs.length !== 0) {
+      setNumEventsUs(newNumEventsUs);
+      setNewNumEventsUs([]);
+    }
+
+    if ([newMoneyAu, newMoneyEu, newMoneyUs].find((money) => money !== 0)) {
+      setMoney(money + newMoneyAu + newMoneyEu + newMoneyUs);
     }
 
     setAnimationTick(animationTick + 1);
   };
 
   useEffect(() => {
-    const timeout = setTimeout(async () => {
+    const timeout = setInterval(async () => {
       await emitData();
     }, tickSpeed);
     return () => {
-      clearTimeout(timeout);
+      clearInterval(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationTick]);
