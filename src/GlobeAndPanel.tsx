@@ -1,10 +1,9 @@
-import React, {FunctionComponent, useEffect, useRef} from "react";
+import React, {FunctionComponent, useEffect} from "react";
 import {useState} from "react";
 import {AnimatedGlobe} from "./AnimatedGlobe";
 
 import {
     ActionIcon,
-    Button,
     Checkbox,
     Drawer, Grid,
     Group, Image,
@@ -87,7 +86,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
         if (!query.env) {
             setQuery({env: "prd"});
         }
-    }, [])
+    }, [query.env, setQuery])
 
     return (
         <div className="App">

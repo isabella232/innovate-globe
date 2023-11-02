@@ -1,11 +1,12 @@
+// @ts-nocheck
+/* eslint-disable */
+
 import {FunctionComponent, useEffect, useState} from "react";
 import "chart.js/auto"; // ADD THIS
-import {Bar, Line, Pie} from "react-chartjs-2";
-import {Badge, Button, Card, Grid, Group, ScrollArea, Space, Text} from "@mantine/core";
+import {Grid, Text} from "@mantine/core";
 import {envRegionMapping, LambdaURLAu, LambdaURLEU, LambdaURLUsEast, LiveEvent} from "./Events";
-import {Dictionary, groupBy} from "lodash";
 import axios, {AxiosInstance} from "axios";
-import {BooleanParam, NumberParam, StringParam, useQueryParams} from "use-query-params";
+import {StringParam, useQueryParams} from "use-query-params";
 
 export interface ChartsProps {
     tickSpeed?: number;
@@ -33,7 +34,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const [newMoneyUs, setNewMoneyUs] = useState<number>(0);
     const [animationTick, setAnimationTick] = useState(0);
 
-    const [query, setQuery] = useQueryParams({
+    const [query] = useQueryParams({
         env: StringParam,
     });
 
@@ -48,33 +49,36 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const getEvents = async () => {
         if (query.env) {
             for (const regionConfig of envRegionMapping[query.env]) {
-                const events = await client
-                    .get<LiveEvent[]>(`${regionConfig.lambdaEndpoint}&last=${tickSpeed}`)
-                    .then((res) => res.data)
-                    .catch((e) => {
-                        console.log(e);
-                        const liveEvent: LiveEvent = {
-                            city: "",
-                            event_id: "",
-                            inserted_at: 0,
-                            lat: "",
-                            long: "",
-                            region: regionConfig.region,
-                            timestamp: 0,
-                            type: "",
-                        };
-                        return [liveEvent];
-                    });
 
-                if (events[0]) {
-                    const total = events.reduce((previous, current) => {
-                        return current.timestamp + previous;
-                    }, 0);
-                    const mean = total / events.length;
-                    setLatency({...latency, [regionConfig.region]: Math.round((new Date().getTime() - mean) / 1000)});
-                }
-                console.log(latency)
+                console.log(regionConfig);
             }
+            //     const events = await client
+            //         .get<LiveEvent[]>(`${regionConfig.lambdaEndpoint}&last=${tickSpeed}`)
+            //         .then((res) => res.data)
+            //         .catch((e) => {
+            //             console.log(e);
+            //             const liveEvent: LiveEvent = {
+            //                 city: "",
+            //                 event_id: "",
+            //                 inserted_at: 0,
+            //                 lat: "",
+            //                 long: "",
+            //                 region: regionConfig.region,
+            //                 timestamp: 0,
+            //                 type: "",
+            //             };
+            //             return [liveEvent];
+            //         });
+            //
+            //     if (events[0]) {
+            //         const total = events.reduce((previous, current) => {
+            //             return current.timestamp + previous;
+            //         }, 0);
+            //         const mean = total / events.length;
+            //         setLatency({...latency, [regionConfig.region]: Math.round((new Date().getTime() - mean) / 1000)});
+            //     }
+            //     console.log(latency)
+            // }
         }
     };
     const getUsEvents = async () => {
@@ -213,9 +217,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         const promiseAu: Promise<void> = getAuEvents();
         const promiseEu: Promise<void> = getEuEvents();
         const promiseUs: Promise<void> = getUsEvents();
-        //const promise: Promise<void> = getEvents();
+        const promise: Promise<void> = getEvents();
 
-        await Promise.all([promiseAu, promiseEu, promiseUs]);
+        await Promise.all([promiseAu, promiseEu, promiseUs, promise]);
 
         if ([newMoneyAu, newMoneyEu, newMoneyUs].find((money) => money !== 0)) {
             setMoney(money + newMoneyAu + newMoneyEu + newMoneyUs);
