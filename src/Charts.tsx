@@ -1,4 +1,3 @@
-// @ts-nocheck
 /* eslint-disable */
 
 import {FunctionComponent, useEffect, useState} from "react";
@@ -29,9 +28,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
 
     const [money, setMoney] = useState<number>(0);
-    const [newMoneyEu, setNewMoneyEu] = useState<number>(0);
-    const [newMoneyAu, setNewMoneyAu] = useState<number>(0);
-    const [newMoneyUs, setNewMoneyUs] = useState<number>(0);
     const [animationTick, setAnimationTick] = useState(0);
 
     const [query] = useQueryParams({
@@ -51,6 +47,14 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             for (const regionConfig of envRegionMapping[query.env]) {
 
                 console.log(regionConfig);
+
+                const test = await client
+                    .get<any>(`${regionConfig.lambdaEndpoint}`)
+                    .then((res) => res.data)
+                    .catch((e) => {
+                        console.log(e)
+                    });
+                console.log(test);
             }
             //     const events = await client
             //         .get<LiveEvent[]>(`${regionConfig.lambdaEndpoint}&last=${tickSpeed}`)
@@ -100,22 +104,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 return [liveEvent];
             });
 
-        setNewMoneyUs(
-            events.reduce((prev, current) => {
-                if (current.price) {
-                    if (typeof current.price === "string") {
-                        const replaced = Number(current.price.replaceAll('"', ""));
-                        const numSafe = isNaN(replaced) ? 0 : replaced;
-                        return prev + numSafe;
-                    } else {
-                        return prev + (isNaN(current.price) ? 0 : current.price);
-                    }
-                } else {
-                    return prev;
-                }
-            }, 0)
-        );
-
         if (events[0]) {
             const total = events.reduce((previous, current) => {
                 return current.timestamp + previous;
@@ -143,22 +131,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 };
                 return [liveEvent];
             });
-
-        setNewMoneyEu(
-            events.reduce((prev, current) => {
-                if (current.price) {
-                    if (typeof current.price === "string") {
-                        const replaced = Number(current.price.replaceAll('"', ""));
-                        const numSafe = isNaN(replaced) ? 0 : replaced;
-                        return prev + numSafe;
-                    } else {
-                        return prev + (isNaN(current.price) ? 0 : current.price);
-                    }
-                } else {
-                    return prev;
-                }
-            }, 0)
-        );
 
         if (events[0]) {
             const total = events.reduce((previous, current) => {
@@ -188,22 +160,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 return [liveEvent];
             });
 
-        setNewMoneyAu(
-            events.reduce((prev, current) => {
-                if (current.price) {
-                    if (typeof current.price === "string") {
-                        const replaced = Number(current.price.replaceAll('"', ""));
-                        const numSafe = isNaN(replaced) ? 0 : replaced;
-                        return prev + numSafe;
-                    } else {
-                        return prev + (isNaN(current.price) ? 0 : current.price);
-                    }
-                } else {
-                    return prev;
-                }
-            }, 0)
-        );
-
         if (events[0]) {
             const total = events.reduce((previous, current) => {
                 return current.timestamp + previous;
@@ -221,10 +177,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
         await Promise.all([promiseAu, promiseEu, promiseUs, promise]);
 
-        if ([newMoneyAu, newMoneyEu, newMoneyUs].find((money) => money !== 0)) {
-            setMoney(money + newMoneyAu + newMoneyEu + newMoneyUs);
-        }
-
         setAnimationTick(animationTick + 1);
     };
 
@@ -237,6 +189,16 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [animationTick]);
+
+    useEffect(() => {
+        const timeout = setInterval(async () => {
+            console.log("minute ping")
+        }, 60000);
+        return () => {
+            clearInterval(timeout);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
     return (
@@ -280,7 +242,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                         return <Text color="white" key={key}>{value.toString()} seconds</Text>
                     })}
                 </>
-
 
 
                 <Grid>
