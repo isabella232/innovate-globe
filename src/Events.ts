@@ -11,6 +11,12 @@ export interface LiveEvent {
     price?: string | number;
 }
 
+export interface MinuteMetric {
+    type: string;
+    minuteBucketTimestamp: string;
+    count: string;
+}
+
 export const AWSRegionGeo = {
     "us-east-1": {
         lat: 37.926868,
@@ -31,6 +37,12 @@ export const envRegionMapping: any = {
         {
             "region": "us-east-1",
             "lambdaEndpoint": `https://gdattsifnijqe42uhkuv4oi5nm0fhbxc.lambda-url.us-east-1.on.aws/?password=${localStorage.getItem(
+                "pw"
+            )}`
+        },
+        {
+            "region": "eu-west-1",
+            "lambdaEndpoint": `https://f3dgz4dpurrrasgkew3m3fjxni0gfjep.lambda-url.eu-west-1.on.aws/?password=${localStorage.getItem(
                 "pw"
             )}`
         }
