@@ -1,8 +1,8 @@
 /* eslint-disable */
 
-import {FunctionComponent, useEffect, useState} from "react";
+import { FunctionComponent, JSXElementConstructor, ReactElement, ReactFragment, ReactPortal, useEffect, useState } from "react";
 import "chart.js/auto"; // ADD THIS
-import {Grid, Text} from "@mantine/core";
+import { Grid, Text } from "@mantine/core";
 import {
     envRegionMapping,
     LambdaURLAu,
@@ -11,8 +11,9 @@ import {
     LiveEvent,
     MinuteMetric,
 } from "./Events";
-import axios, {AxiosInstance} from "axios";
-import {StringParam, useQueryParams} from "use-query-params";
+import axios, { AxiosInstance } from "axios";
+import { StringParam, useQueryParams } from "use-query-params";
+import CountUp from 'react-countup';
 
 export interface ChartsProps {
     tickSpeed?: number;
@@ -25,14 +26,17 @@ const auClient: AxiosInstance = axios.create();
 const client: AxiosInstance = axios.create();
 
 export const Charts: FunctionComponent<ChartsProps> = ({
-                                                           tickSpeed = 1000,
-                                                       }) => {
+    tickSpeed = 1000,
+}) => {
     const [latencyUs, setLatencyUs] = useState<number>(0);
     const [latencyEu, setLatencyEu] = useState<number>(0);
     const [latencyAu, setLatencyAu] = useState<number>(0);
 
+    const [prevTotalPurchases, setPrevTotalPurchases] = useState<number>(0);
     const [totalPurchases, setTotalPurchases] = useState<number>(0);
+    const [prevTotalRevenue, setPrevTotalRevenue] = useState<number>(0);
     const [totalRevenue, setTotalRevenue] = useState<number>(0);
+    const [prevTotalAddToCarts, setPrevTotalAddToCarts] = useState<number>(0);
     const [totalAddToCarts, setTotalAddToCarts] = useState<number>(0);
 
 
@@ -66,33 +70,39 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             var revenue = 0;
             var addToCarts = 0;
             var arrayPromises = [];
+            var oneMinuteAgo = new Date(Math.round((Date.now() - 60000) / 60000) * 60000);
             for (const regionConfig of envRegionMapping[query.env]) {
                 arrayPromises.push(await client
-                    .get<MinuteMetric[]>(`${regionConfig.lambdaEndpoint}&minuteMetrics=2023-01-01 00:00:00Z`));
+                    .get<MinuteMetric[]>(`${regionConfig.lambdaEndpoint}&minuteMetrics=` + oneMinuteAgo.toISOString()));
             }
             await Promise.all(arrayPromises);
-            for(const promise of arrayPromises){
-                if(Array.isArray(promise.data)){
+            for (const promise of arrayPromises) {
+                if (Array.isArray(promise.data)) {
                     const minuteMetrics = promise.data;
-                    minuteMetrics.forEach((minuteMetric: MinuteMetric) =>{
-                        if(minuteMetric.type === 'purchases'){
+                    minuteMetrics.forEach((minuteMetric: MinuteMetric) => {
+                        if (minuteMetric.type === 'purchases') {
                             console.log(`Purchases from region`, minuteMetric.count)
                             purchases += Number(minuteMetric.count);
                         }
-                        if(minuteMetric.type === 'revenue'){
+                        if (minuteMetric.type === 'revenue') {
                             console.log(`revenue from region`, minuteMetric.count)
                             revenue += Number(minuteMetric.count);
                         }
-                        if(minuteMetric.type === 'addToCart'){
+                        if (minuteMetric.type === 'addToCart') {
                             console.log(`addToCart from region`, minuteMetric.count)
                             addToCarts += Number(minuteMetric.count);
                         }
                     })
                 }
                 console.log("updating total purchases to", purchases);
-                setTotalPurchases(purchases);
-                setTotalRevenue(revenue);
-                setTotalAddToCarts(addToCarts)
+                setPrevTotalPurchases(totalPurchases);
+                setTotalPurchases(() => totalPurchases + purchases);
+
+                setPrevTotalRevenue(totalRevenue);
+                setTotalRevenue(() => totalRevenue + revenue);
+
+                setPrevTotalAddToCarts(totalAddToCarts);
+                setTotalAddToCarts(() => totalAddToCarts + addToCarts);
             }
 
         }
@@ -203,7 +213,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     }, [animationTick]);
 
     useEffect(() => {
-        if(env !== undefined){
+        if (env !== undefined) {
             getMetrics()
             const timeout = setInterval(async () => {
                 getMetrics()
@@ -227,17 +237,43 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 height: 100,
                 left: "20%"
             }}>
-                <Grid.Col span={4} style={{color: "white", borderLeft: "4px solid white"}}>
-                    <Text size="xl" color={"darkgrey"}>Sales per minute (USD)</Text>
-                    <Text weight="bold" style={{fontSize: "xx-large"}}>{totalRevenue}</Text>
+                <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
+                    <Text size="xl" color={"darkgrey"}>Total Sales (USD)</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>
+                        <CountUp
+                            start={prevTotalRevenue}
+                            end={totalRevenue}
+                            duration={10}
+                            separator=","
+                            decimal="."
+                            decimals={2}
+                            prefix="$"
+                        />
+                    </Text>
                 </Grid.Col>
-                <Grid.Col span={4} style={{color: "white", borderLeft: "4px solid white"}}>
-                    <Text size="xl" color={"darkgrey"}>Add to cart per minute</Text>
-                    <Text weight="bold" style={{fontSize: "xx-large"}}>{totalAddToCarts}</Text>
+                <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
+                    <Text size="xl" color={"darkgrey"}>Total Add to cart</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>
+                        <CountUp
+                            start={prevTotalAddToCarts}
+                            end={totalAddToCarts}
+                            duration={10}
+                            separator=","
+                            decimals={0}
+                        />
+                    </Text>
                 </Grid.Col>
-                <Grid.Col span={4} style={{color: "white", borderLeft: "4px solid white"}}>
-                    <Text size="xl" color={"darkgrey"}>Transactions per minute</Text>
-                    <Text weight="bold" style={{fontSize: "xx-large"}}>{totalPurchases}</Text>
+                <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
+                    <Text size="xl" color={"darkgrey"}>Total Transactions</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>
+                        <CountUp
+                            start={prevTotalPurchases}
+                            end={totalPurchases}
+                            duration={10}
+                            separator=","
+                            decimals={0}
+                        />
+                    </Text>
                 </Grid.Col>
             </Grid>
 
@@ -260,7 +296,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
 
                 <Grid>
-                    <Grid.Col span={4} style={{color: "white"}}>
+                    <Grid.Col span={4} style={{ color: "white" }}>
                         <Text size={14} color="white">
                             us-east-1
                         </Text>
@@ -279,7 +315,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                             {latencyUs.toString()} seconds
                         </Text>
                     </Grid.Col>
-                    <Grid.Col span={4} style={{color: "white"}}>
+                    <Grid.Col span={4} style={{ color: "white" }}>
                         <Text size={14} color="white">
                             eu-west-1
                         </Text>
@@ -298,7 +334,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                             {latencyEu.toString()} seconds
                         </Text>
                     </Grid.Col>
-                    <Grid.Col span={4} style={{color: "white"}}>
+                    <Grid.Col span={4} style={{ color: "white" }}>
                         <Text size={14} color="white">
                             ap-southeast-2
                         </Text>
