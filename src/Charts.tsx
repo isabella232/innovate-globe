@@ -35,6 +35,8 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const [totalRevenue, setTotalRevenue] = useState<number>(0);
     const [totalAddToCarts, setTotalAddToCarts] = useState<number>(0);
 
+    const [totalRevenueAccumulator, setTotalRevenueAccumulator] = useState<number>(0);
+
 
     const [latency, setLatency] = useState<Record<string, number>>({});
 
@@ -67,8 +69,14 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             var addToCarts = 0;
             var arrayPromises = [];
             for (const regionConfig of envRegionMapping[query.env]) {
+                var currentdate = new Date();
+                var currentMinute = currentdate.getMinutes();
+                currentdate.setMilliseconds(0)
+                currentdate.setSeconds(0)
+                currentdate.setMinutes(currentMinute - 1)
+                console.log(currentdate.toISOString())
                 arrayPromises.push(await client
-                    .get<MinuteMetric[]>(`${regionConfig.lambdaEndpoint}&minuteMetrics=2023-01-01 00:00:00Z`));
+                    .get<MinuteMetric[]>(`${regionConfig.lambdaEndpoint}&minuteMetrics=${currentdate.toISOString()}`));
             }
             await Promise.all(arrayPromises);
             for(const promise of arrayPromises){
@@ -93,6 +101,9 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 setTotalPurchases(purchases);
                 setTotalRevenue(revenue);
                 setTotalAddToCarts(addToCarts)
+                const currentTotalRevenue = totalRevenueAccumulator + revenue;
+                console.log("current total", currentTotalRevenue)
+                setTotalRevenueAccumulator(currentTotalRevenue);
             }
 
         }
@@ -215,12 +226,31 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [env]);
 
+    let USDollar = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    });
+
 
     return (
         <>
             <Grid style={{
                 position: "fixed",
-                bottom: 200,
+                top: 100,
+                padding: 10,
+                zIndex: 2,
+                width: "80%",
+                height: 100,
+                left: "20%"
+            }}>
+                <Grid.Col span={4} style={{color: "white", borderLeft: "4px solid white"}}>
+                    <Text size="xl" color={"darkgrey"}>Total sales  (USD)</Text>
+                    <Text weight="bold" style={{fontSize: "xx-large"}}>{USDollar.format(totalRevenueAccumulator)}</Text>
+                </Grid.Col>
+            </Grid>
+            <Grid style={{
+                position: "fixed",
+                bottom: 100,
                 padding: 10,
                 zIndex: 2,
                 width: "80%",
@@ -229,7 +259,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             }}>
                 <Grid.Col span={4} style={{color: "white", borderLeft: "4px solid white"}}>
                     <Text size="xl" color={"darkgrey"}>Sales per minute (USD)</Text>
-                    <Text weight="bold" style={{fontSize: "xx-large"}}>{totalRevenue}</Text>
+                    <Text weight="bold" style={{fontSize: "xx-large"}}>{USDollar.format(totalRevenue)}</Text>
                 </Grid.Col>
                 <Grid.Col span={4} style={{color: "white", borderLeft: "4px solid white"}}>
                     <Text size="xl" color={"darkgrey"}>Add to cart per minute</Text>
