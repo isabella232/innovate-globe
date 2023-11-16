@@ -11,9 +11,9 @@ export interface LiveEvent {
     price?: string | number;
 }
 
-export interface MinuteMetric {
+export interface TimeBucketMetric {
     type: string;
-    minuteBucketTimestamp: string;
+    bucketTimestamp: string;
     count: string;
 }
 
