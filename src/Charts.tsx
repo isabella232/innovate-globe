@@ -32,13 +32,17 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const [latencyEu, setLatencyEu] = useState<number>(0);
     const [latencyAu, setLatencyAu] = useState<number>(0);
 
-    const [totalPurchases, setTotalPurchases] = useState<number>(0);
-    const [totalRevenue, setTotalRevenue] = useState<number>(0);
-    const [totalAddToCarts, setTotalAddToCarts] = useState<number>(0);
+    const [purchasesPerMinute, setPurchasesPerMinute] = useState<number>(0);
+    const [revenuePerMinute, setRevenuePerMinute] = useState<number>(0);
+    const [addToCartsPerMinute, setAddToCartsPerMinute] = useState<number>(0);
 
-    const [prevTotalRevenueAccumulator, setPrevTotalRevenueAccumulator] = useState<number>(0);
-    const [totalRevenueAccumulator, setTotalRevenueAccumulator] = useState<number>(0);
+    const [purchasesPerDay, setPurchasesPerDay] = useState<number>(0);
+    const [revenuePerDay, setRevenuePerDay] = useState<number>(0);
+    const [addToCartsPerDay, setAddToCartsPerDay] = useState<number>(0);
 
+    const [prevPurchasesPerDay, setPrevPurchasesPerDay] = useState<number>(0);
+    const [prevRevenuePerDay, setPrevRevenuePerDay] = useState<number>(0);
+    const [prevAddToCartsPerDay, setPrevAddToCartsPerDay] = useState<number>(0);
 
     const [latency, setLatency] = useState<Record<string, number>>({});
 
@@ -66,46 +70,66 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
     const getMetrics = async () => {
         if (query.env) {
-            var purchases = 0;
-            var revenue = 0;
-            var addToCarts = 0;
+            var purchasesPerMinuteAcrossRegions = 0;
+            var revenuePerMinuteAcrossRegions = 0;
+            var addToCartsPerMinuteAcrossRegions = 0;
+
+            var purchasesPerDayAcrossRegions = 0;
+            var revenuePerDayAcrossRegions = 0;
+            var addToCartsPerDayAcrossRegions = 0;
+
             var arrayPromises = [];
             for (const regionConfig of envRegionMapping[query.env]) {
                 var currentdate = new Date();
                 var currentMinute = currentdate.getMinutes();
-                currentdate.setMilliseconds(0)
-                currentdate.setSeconds(0)
-                currentdate.setMinutes(currentMinute - 1)
+                currentdate.setMilliseconds(0);
+                currentdate.setSeconds(0);
+                currentdate.setMinutes(currentMinute - 1);
+                var currentDay = currentdate.toISOString().split('T')[0];
                 arrayPromises.push(await client
-                    .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&metrics=${currentdate.toISOString()}`));
+                    .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&timeBucket=${currentdate.toISOString()}&timeBucketType=minutely`));
+                arrayPromises.push(await client
+                    .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&timeBucket=${currentDay}&timeBucketType=daily`));
             }
             await Promise.all(arrayPromises);
             for (const promise of arrayPromises) {
                 if (Array.isArray(promise.data)) {
                     const metrics = promise.data;
                     metrics.forEach((metric: TimeBucketMetric) => {
-                        if (metric.type === 'purchases') {
-                            console.log(`Purchases from region`, metric.count)
-                            purchases += Number(metric.count);
-                        }
-                        if (metric.type === 'revenue') {
-                            console.log(`revenue from region`, metric.count)
-                            revenue += Number(metric.count);
-                        }
-                        if (metric.type === 'addToCart') {
-                            console.log(`addToCart from region`, metric.count)
-                            addToCarts += Number(metric.count);
+                        if (metric.timeBucketType === 'minutely') {
+                            if (metric.type === 'purchases') {
+                                purchasesPerMinuteAcrossRegions += Number(metric.count);
+                            }
+                            if (metric.type === 'revenue') {
+                                revenuePerMinuteAcrossRegions += Number(metric.count);
+                            }
+                            if (metric.type === 'addToCart') {
+                                addToCartsPerMinuteAcrossRegions += Number(metric.count);
+                            }
+                        } else if (metric.timeBucketType === 'daily') {
+                            if (metric.type === 'purchases') {
+                                purchasesPerDayAcrossRegions += Number(metric.count);
+                            }
+                            if (metric.type === 'revenue') {
+                                revenuePerDayAcrossRegions += Number(metric.count);
+                            }
+                            if (metric.type === 'addToCart') {
+                                addToCartsPerDayAcrossRegions += Number(metric.count);
+                            }
                         }
                     })
                 }
-                setTotalPurchases(purchases);
-                setTotalRevenue(revenue);
-                setTotalAddToCarts(addToCarts);
-                const previousRevenue = totalRevenueAccumulator;
-                setPrevTotalRevenueAccumulator(previousRevenue);
-                const currentTotalRevenue = totalRevenueAccumulator + revenue;
-                console.log("current total", currentTotalRevenue)
-                setTotalRevenueAccumulator(currentTotalRevenue);
+                setPurchasesPerMinute(purchasesPerMinuteAcrossRegions);
+                setRevenuePerMinute(revenuePerMinuteAcrossRegions);
+                setAddToCartsPerMinute(addToCartsPerMinuteAcrossRegions);
+                
+                setPrevPurchasesPerDay(purchasesPerDay);
+                setPrevRevenuePerDay(revenuePerDay);
+                setPrevAddToCartsPerDay(addToCartsPerDay);
+
+                setPurchasesPerDay(purchasesPerDayAcrossRegions);
+                setRevenuePerDay(revenuePerDayAcrossRegions);
+                setAddToCartsPerDay(addToCartsPerDayAcrossRegions);
             }
         }
     };
@@ -245,16 +269,38 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 left: "20%"
             }}>
                 <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
-                    <Text size="xl" color={"darkgrey"}>Total Sales (USD)</Text>
+                    <Text size="xl" color={"darkgrey"}>Total sales today (USD)</Text>
                     <Text weight="bold" style={{ fontSize: "xx-large" }}>
                         <CountUp
-                            start={prevTotalRevenueAccumulator}
-                            end={totalRevenueAccumulator}
+                            start={prevRevenuePerDay}
+                            end={revenuePerDay}
                             duration={10}
                             separator=","
                             decimal="."
                             decimals={2}
                             prefix="$"
+                        />
+                    </Text>
+                </Grid.Col>
+                <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
+                    <Text size="xl" color={"darkgrey"}>Total add to cart today</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>
+                        <CountUp
+                            start={prevAddToCartsPerDay}
+                            end={addToCartsPerDay}
+                            duration={10}
+                            separator=","
+                        />
+                    </Text>
+                </Grid.Col>
+                <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
+                    <Text size="xl" color={"darkgrey"}>Total transactions today</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>
+                        <CountUp
+                            start={prevPurchasesPerDay}
+                            end={purchasesPerDay}
+                            duration={10}
+                            separator=","
                         />
                     </Text>
                 </Grid.Col>
@@ -270,15 +316,15 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             }}>
                 <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
                     <Text size="xl" color={"darkgrey"}>Sales per minute (USD)</Text>
-                    <Text weight="bold" style={{ fontSize: "xx-large" }}>{USDollar.format(totalRevenue)}</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>{USDollar.format(revenuePerMinute)}</Text>
                 </Grid.Col>
                 <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
                     <Text size="xl" color={"darkgrey"}>Add to cart per minute</Text>
-                    <Text weight="bold" style={{ fontSize: "xx-large" }}>{totalAddToCarts}</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>{addToCartsPerMinute}</Text>
                 </Grid.Col>
                 <Grid.Col span={4} style={{ color: "white", borderLeft: "4px solid white" }}>
                     <Text size="xl" color={"darkgrey"}>Transactions per minute</Text>
-                    <Text weight="bold" style={{ fontSize: "xx-large" }}>{totalPurchases}</Text>
+                    <Text weight="bold" style={{ fontSize: "xx-large" }}>{purchasesPerMinute}</Text>
                 </Grid.Col>
             </Grid>
 

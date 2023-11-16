@@ -13,7 +13,7 @@ export interface LiveEvent {
 
 export interface TimeBucketMetric {
     type: string;
-    bucketTimestamp: string;
+    timeBucketType: string;
     count: string;
 }
 
