@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState, useRef } from "react";
 import "chart.js/auto"; // ADD THIS
 import { Grid, Text } from "@mantine/core";
 import {
@@ -19,15 +19,12 @@ export interface ChartsProps {
     tickSpeed?: number;
 }
 
-
 const euClient: AxiosInstance = axios.create();
 const usClient: AxiosInstance = axios.create();
 const auClient: AxiosInstance = axios.create();
 const client: AxiosInstance = axios.create();
 
-export const Charts: FunctionComponent<ChartsProps> = ({
-    tickSpeed = 1000,
-}) => {
+export const Charts: FunctionComponent<ChartsProps> = (props) => {
     const [latencyUs, setLatencyUs] = useState<number>(0);
     const [latencyEu, setLatencyEu] = useState<number>(0);
     const [latencyAu, setLatencyAu] = useState<number>(0);
@@ -36,16 +33,12 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     const [revenuePerMinute, setRevenuePerMinute] = useState<number>(0);
     const [addToCartsPerMinute, setAddToCartsPerMinute] = useState<number>(0);
 
+    const prevPurchaseStateRef = useRef(0);
+    const prevRevenueStateRef = useRef(0);
+    const prevAddToCartStateRef = useRef(0);
     const [purchasesPerDay, setPurchasesPerDay] = useState<number>(0);
     const [revenuePerDay, setRevenuePerDay] = useState<number>(0);
     const [addToCartsPerDay, setAddToCartsPerDay] = useState<number>(0);
-
-    const [prevPurchasesPerDay, setPrevPurchasesPerDay] = useState<number>(0);
-    const [prevRevenuePerDay, setPrevRevenuePerDay] = useState<number>(0);
-    const [prevAddToCartsPerDay, setPrevAddToCartsPerDay] = useState<number>(0);
-
-    const [latency, setLatency] = useState<Record<string, number>>({});
-
 
     const [animationTick, setAnimationTick] = useState(0);
 
@@ -64,6 +57,18 @@ export const Charts: FunctionComponent<ChartsProps> = ({
         }
     }, [query.env, env])
 
+    useEffect(() => {
+        prevPurchaseStateRef.current = purchasesPerDay;
+    }, [purchasesPerDay]);
+
+    useEffect(() => {
+        prevRevenueStateRef.current = revenuePerDay;
+    }, [revenuePerDay]);
+
+    useEffect(() => {
+        prevAddToCartStateRef.current = addToCartsPerDay;
+    }, [addToCartsPerDay]);
+
     function force<T>(v: T | null | undefined, fallback: T): T {
         return v !== null && v !== undefined ? v : fallback;
     }
@@ -78,7 +83,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
             var revenuePerDayAcrossRegions = 0;
             var addToCartsPerDayAcrossRegions = 0;
 
-            var arrayPromises = [];
+            var arrayPromises:any = [];
             for (const regionConfig of envRegionMapping[query.env]) {
                 var currentdate = new Date();
                 var currentMinute = currentdate.getMinutes();
@@ -87,7 +92,10 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 currentdate.setMinutes(currentMinute - 1);
                 var currentDay = currentdate.toISOString().split('T')[0];
                 arrayPromises.push(await client
-                    .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&timeBucket=${currentdate.toISOString()}&timeBucketType=minutely`));
+                    .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&timeBucket=${currentdate.toISOString()}&timeBucketType=minutely`).catch((e) => {
+                        console.log("Caught an error calling the lambda", e);
+                        return new Promise(() => { return {"data":[]}});
+                    }));
                 arrayPromises.push(await client
                     .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&timeBucket=${currentDay}&timeBucketType=daily`));
             }
@@ -122,10 +130,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 setPurchasesPerMinute(purchasesPerMinuteAcrossRegions);
                 setRevenuePerMinute(revenuePerMinuteAcrossRegions);
                 setAddToCartsPerMinute(addToCartsPerMinuteAcrossRegions);
-                
-                setPrevPurchasesPerDay(purchasesPerDay);
-                setPrevRevenuePerDay(revenuePerDay);
-                setPrevAddToCartsPerDay(addToCartsPerDay);
 
                 setPurchasesPerDay(purchasesPerDayAcrossRegions);
                 setRevenuePerDay(revenuePerDayAcrossRegions);
@@ -135,7 +139,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     };
     const getUsEvents = async () => {
         const events = await usClient
-            .get<LiveEvent[]>(`${LambdaURLUsEast}&last=${tickSpeed}`)
+            .get<LiveEvent[]>(`${LambdaURLUsEast}&last=${props.tickSpeed}`)
             .then((res) => res.data)
             .catch((e) => {
                 console.log(e);
@@ -163,7 +167,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
     const getEuEvents = async () => {
         const events = await euClient
-            .get<LiveEvent[]>(`${LambdaURLEU}&last=${tickSpeed}`)
+            .get<LiveEvent[]>(`${LambdaURLEU}&last=${props.tickSpeed}`)
             .then((res) => res.data)
             .catch((e) => {
                 console.log(e);
@@ -191,7 +195,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
 
     const getAuEvents = async () => {
         const events = await auClient
-            .get<LiveEvent[]>(`${LambdaURLAu}&last=${tickSpeed}`)
+            .get<LiveEvent[]>(`${LambdaURLAu}&last=${props.tickSpeed}`)
             .then((res) => res.data)
             .catch((e) => {
                 console.log(e);
@@ -231,7 +235,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
     useEffect(() => {
         const timeout = setInterval(async () => {
             await emitData();
-        }, tickSpeed);
+        }, props.tickSpeed);
         return () => {
             clearInterval(timeout);
         };
@@ -272,7 +276,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                     <Text size="xl" color={"darkgrey"}>Total sales today (USD)</Text>
                     <Text weight="bold" style={{ fontSize: "xx-large" }}>
                         <CountUp
-                            start={prevRevenuePerDay}
+                            start={prevRevenueStateRef.current}
                             end={revenuePerDay}
                             duration={10}
                             separator=","
@@ -286,7 +290,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                     <Text size="xl" color={"darkgrey"}>Total add to cart today</Text>
                     <Text weight="bold" style={{ fontSize: "xx-large" }}>
                         <CountUp
-                            start={prevAddToCartsPerDay}
+                            start={prevAddToCartStateRef.current}
                             end={addToCartsPerDay}
                             duration={10}
                             separator=","
@@ -297,7 +301,7 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                     <Text size="xl" color={"darkgrey"}>Total transactions today</Text>
                     <Text weight="bold" style={{ fontSize: "xx-large" }}>
                         <CountUp
-                            start={prevPurchasesPerDay}
+                            start={prevPurchaseStateRef.current}
                             end={purchasesPerDay}
                             duration={10}
                             separator=","
@@ -339,12 +343,6 @@ export const Charts: FunctionComponent<ChartsProps> = ({
                 left: 0
             }}>
                 <Text color="white" weight={"bold"}>Latency</Text>
-                <>
-                    {Object.entries(latency).map(([key, value]) => {
-                        return <Text color="white" key={key}>{value.toString()} seconds</Text>
-                    })}
-                </>
-
 
                 <Grid>
                     <Grid.Col span={4} style={{ color: "white" }}>
