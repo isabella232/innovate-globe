@@ -3,14 +3,13 @@ import ReactGlobeGl, { GlobeMethods } from "react-globe.gl";
 import globeData from "./data/admin-data.json";
 import {
   AWSRegionGeo,
-  BorderColors,
-  EventTypeColors,
   LambdaURLAu,
   LambdaURLEU,
   LambdaURLUsEast,
   LiveEvent,
 } from "./Events";
 import { uniqBy } from "lodash";
+import * as THREE from "three";
 
 interface ArcData {
   filter?: any;
@@ -52,11 +51,9 @@ interface AnimatedGlobeProps {
   numberOfAnimation: number;
   arcDashGap: number;
   arcStroke: number;
-  earthImg: string;
-  atmosphereColor: string;
   atmosphereAltitude: number;
   arcAltitudeAutoScale: number;
-  discoMode: boolean;
+  env: string;
 }
 
 export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
@@ -73,18 +70,16 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
   ringRadius,
   ringSpeed,
   arcDashGap,
-  earthImg,
   arcStroke,
-  atmosphereColor,
-  atmosphereAltitude,
   arcAltitudeAutoScale,
-  discoMode,
+    env
 }) => {
   const [arcsData, setArcsData] = useState<ArcData[]>([]);
   const [ringsData, setRingsData] = useState<RingData[]>([]);
   const [labelsData, setLabelsData] = useState<LabelData[]>([]);
   const [animationTick, setAnimationTick] = useState(0);
   const [geometryCount, setGeometryCount] = useState(0);
+
   const globeRef = useRef<GlobeMethods>();
 
   const emitArc = async () => {
@@ -108,8 +103,6 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
 
     const datum = Object.entries(resTotal).flatMap(([region, liveEvents]) => {
       return liveEvents.map((liveEvent) => {
-        const color =
-          BorderColors[EventTypeColors[liveEvent.type]] || BorderColors[0];
         const lattitude = Number(liveEvent.lat);
         const longitude = Number(liveEvent.long);
         const timestamp = new Date().getTime();
@@ -120,11 +113,10 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
             endLat: AWSRegionGeo[region as validRegions].lat,
             startLng: longitude,
             endLng: AWSRegionGeo[region as validRegions].lng,
-            color,
+            color: "#8f7000",
             timestamp,
           } as ArcData,
           sourceRing: {
-            color,
             lat: lattitude,
             lng: longitude,
             timestamp,
@@ -208,6 +200,12 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     globeRef.current?.resumeAnimation();
   }
 
+  const material = new THREE.MeshPhongMaterial({
+    color: '#9dabf2',
+    emissive: '#062d70'
+  });
+
+
   return (
     <ReactGlobeGl
       labelsData={
@@ -253,7 +251,6 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       labelResolution={2}
       labelIncludeDot={false}
       labelsTransitionDuration={0}
-      labelColor={() => "rgba(255, 165, 0, 0.75)"}
       ref={globeRef}
       arcsData={renderArcs ? arcsData : []}
       arcColor={"color"}
@@ -270,16 +267,12 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
       ringMaxRadius={ringRadius}
       ringPropagationSpeed={ringSpeed}
       ringRepeatPeriod={(flightTime * arcRelativeLength) / numRings}
-      backgroundImageUrl="/night-sky.png"
-      globeImageUrl={discoMode ? "" : earthImg}
-      atmosphereColor={atmosphereColor}
-      atmosphereAltitude={atmosphereAltitude}
-      hexPolygonsData={discoMode ? [...globeData.features] : []}
-      hexPolygonResolution={3}
+      globeMaterial={material}
+      backgroundColor={"#181d3a"}
+      hexPolygonsData={[...globeData.features]}
+      hexPolygonColor={() => '#34ad95'}
       hexPolygonMargin={0.3}
-      hexPolygonLabel={(feat: any) => feat.properties.ADMIN}
-      showGlobe={discoMode ? false : true}
-      showAtmosphere={discoMode ? false : true}
+      showGlobe={true}
       htmlElementsData={[
         {
           ...AWSRegionGeo["us-east-1"],
