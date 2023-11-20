@@ -14,7 +14,7 @@ function App() {
             element={
               <>
                 <GlobeAndPanel />
-                <Charts />
+                <Charts tickSpeed={1000}/>
               </>
             }
           />
