@@ -52,7 +52,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
 
     useEffect(() => {
         if (query.env !== env) {
-            console.log("environment is now: ", query.env)
+            console.log("environment is now: ", env)
             setEnv(query.env!);
         }
     }, [query.env, env])
@@ -74,6 +74,9 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     }
 
     const getMetrics = async () => {
+        if (!query.env) {
+            query.env = "prd";
+        }
         if (query.env) {
             var purchasesPerMinuteAcrossRegions = 0;
             var revenuePerMinuteAcrossRegions = 0;
