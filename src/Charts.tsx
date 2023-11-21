@@ -74,6 +74,9 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     }
 
     const getMetrics = async () => {
+        if (!query.env) {
+            query.env = "prd";
+        }
         if (query.env) {
             var purchasesPerMinuteAcrossRegions = 0;
             var revenuePerMinuteAcrossRegions = 0;
