@@ -104,7 +104,7 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     const datum = Object.entries(resTotal).flatMap(([region, liveEvents]) => {
       return liveEvents.map((liveEvent) => {
         const lattitude = Number(liveEvent.lat);
-        const longitude = Number(liveEvent.long);
+        const longitude = Number(liveEvent.lng);
         const timestamp = new Date().getTime();
 
         return {

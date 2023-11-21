@@ -3,7 +3,7 @@ export interface LiveEvent {
     event_id: string;
     inserted_at: number;
     lat: string;
-    long: string;
+    lng: string;
     region: "us-east-1";
     timestamp: number;
     type: string;
@@ -43,6 +43,14 @@ export const envRegionMapping: any = {
         {
             "region": "eu-west-1",
             "lambdaEndpoint": `https://f3dgz4dpurrrasgkew3m3fjxni0gfjep.lambda-url.eu-west-1.on.aws/?password=${localStorage.getItem(
+                "pw"
+            )}`
+        }
+    ],
+    "stg": [
+        {
+            "region": "us-east-2",
+            "lambdaEndpoint": `https://musf6glaozilpayrn7xlr44j7y0shnct.lambda-url.us-east-2.on.aws/?password=${localStorage.getItem(
                 "pw"
             )}`
         }
