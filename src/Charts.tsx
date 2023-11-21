@@ -52,7 +52,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
 
     useEffect(() => {
         if (query.env !== env) {
-            console.log("environment is now: ", query.env)
+            console.log("environment is now: ", env)
             setEnv(query.env!);
         }
     }, [query.env, env])
