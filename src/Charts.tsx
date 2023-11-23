@@ -24,6 +24,8 @@ const usClient: AxiosInstance = axios.create();
 const auClient: AxiosInstance = axios.create();
 const client: AxiosInstance = axios.create();
 
+const bfcmDays = ["2023-11-24", "2023-11-25", "2023-11-26", "2023-11-27"];
+
 export const Charts: FunctionComponent<ChartsProps> = (props) => {
     const [latencyUs, setLatencyUs] = useState<number>(0);
     const [latencyEu, setLatencyEu] = useState<number>(0);
@@ -39,6 +41,9 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     const [purchasesPerDay, setPurchasesPerDay] = useState<number>(0);
     const [revenuePerDay, setRevenuePerDay] = useState<number>(0);
     const [addToCartsPerDay, setAddToCartsPerDay] = useState<number>(0);
+
+    const prevBfcmRevenueRef = useRef(0);
+    const [bfcmRevenue, setBfcmRevenue] = useState<number>(0);
 
     const [animationTick, setAnimationTick] = useState(0);
 
@@ -69,8 +74,16 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
         prevAddToCartStateRef.current = addToCartsPerDay;
     }, [addToCartsPerDay]);
 
+    useEffect(() => {
+        prevBfcmRevenueRef.current = bfcmRevenue;
+    }, [bfcmRevenue]);
+
     function force<T>(v: T | null | undefined, fallback: T): T {
         return v !== null && v !== undefined ? v : fallback;
+    }
+
+    function onBFCMWeekend(day: string) {
+        return bfcmDays.includes(day);
     }
 
     const getMetrics = async () => {
@@ -87,13 +100,15 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
             var addToCartsPerDayAcrossRegions = 0;
 
             var arrayPromises:any = [];
+            var currentdate = new Date();
+            var currentMinute = currentdate.getMinutes();
+            currentdate.setMilliseconds(0);
+            currentdate.setSeconds(0);
+            currentdate.setMinutes(currentMinute - 1);
+            var currentDay = currentdate.toISOString().split('T')[0];
+            var isOnBFCMWeekend = onBFCMWeekend(currentDay);
+
             for (const regionConfig of envRegionMapping[query.env]) {
-                var currentdate = new Date();
-                var currentMinute = currentdate.getMinutes();
-                currentdate.setMilliseconds(0);
-                currentdate.setSeconds(0);
-                currentdate.setMinutes(currentMinute - 1);
-                var currentDay = currentdate.toISOString().split('T')[0];
                 arrayPromises.push(await client
                     .get<TimeBucketMetric[]>(`${regionConfig.lambdaEndpoint}&timeBucket=${currentdate.toISOString()}&timeBucketType=minutely`).catch((e) => {
                         console.log("Caught an error calling the lambda", e);
@@ -137,6 +152,9 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                 setPurchasesPerDay(purchasesPerDayAcrossRegions);
                 setRevenuePerDay(revenuePerDayAcrossRegions);
                 setAddToCartsPerDay(addToCartsPerDayAcrossRegions);
+                if (isOnBFCMWeekend) {
+                    setBfcmRevenue(revenuePerDayAcrossRegions);
+                }
             }
         }
     };
@@ -308,6 +326,29 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                             end={purchasesPerDay}
                             duration={10}
                             separator=","
+                        />
+                    </Text>
+                </Grid.Col>
+            </Grid>
+            <Grid style={{
+                position: "fixed",
+                top: "40%",
+                padding: 10,
+                zIndex: 5,
+                width: "80%",
+                left: "10%"
+            }}>
+                <Grid.Col span={10} style={{ color: "white", borderLeft: "4px solid white" }}>
+                    <Text color={"white"} style={{ fontSize: "xxx-large" }}>BFCM sales (USD)</Text>
+                    <Text weight="bold" style={{ fontSize: "xxx-large" }}>
+                        <CountUp
+                            start={prevBfcmRevenueRef.current}
+                            end={bfcmRevenue}
+                            duration={10}
+                            separator=","
+                            decimal="."
+                            decimals={2}
+                            prefix="$"
                         />
                     </Text>
                 </Grid.Col>
