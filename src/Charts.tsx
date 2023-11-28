@@ -19,12 +19,17 @@ export interface ChartsProps {
     tickSpeed?: number;
 }
 
+function onBFCMWeekend(day: string) {
+    return bfcmDays.includes(day);
+}
+
 const euClient: AxiosInstance = axios.create();
 const usClient: AxiosInstance = axios.create();
 const auClient: AxiosInstance = axios.create();
 const client: AxiosInstance = axios.create();
 
 const bfcmDays = ["2023-11-24", "2023-11-25", "2023-11-26", "2023-11-27"];
+const isBFCMWeekend = onBFCMWeekend(new Date().toISOString().split('T')[0]);
 
 export const Charts: FunctionComponent<ChartsProps> = (props) => {
     const [latencyUs, setLatencyUs] = useState<number>(0);
@@ -80,10 +85,6 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
 
     function force<T>(v: T | null | undefined, fallback: T): T {
         return v !== null && v !== undefined ? v : fallback;
-    }
-
-    function onBFCMWeekend(day: string) {
-        return bfcmDays.includes(day);
     }
 
     const getMetrics = async () => {
@@ -330,7 +331,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                     </Text>
                 </Grid.Col>
             </Grid>
-            <Grid style={{
+            {isBFCMWeekend && <Grid style={{
                 position: "fixed",
                 top: "40%",
                 padding: 10,
@@ -352,7 +353,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                         />
                     </Text>
                 </Grid.Col>
-            </Grid>
+            </Grid> }
             <Grid style={{
                 position: "fixed",
                 bottom: 100,
