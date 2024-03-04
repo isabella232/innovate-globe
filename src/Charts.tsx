@@ -62,7 +62,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
 
     useEffect(() => {
         if (query.env !== env) {
-            console.log("environment is now: ", env)
+            console.log("environment is now: ", query.env)
             setEnv(query.env!);
         }
     }, [query.env, env])
@@ -265,15 +265,16 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     }, [animationTick]);
 
     useEffect(() => {
-        if (env !== undefined) {
-            getMetrics()
-            const timeout = setInterval(async () => {
-                getMetrics()
-            }, 60000);
-            return () => {
-                clearInterval(timeout);
-            };
+        if (env == undefined) { 
+            setEnv("prd")
         }
+        getMetrics()
+        const timeout = setInterval(async () => {
+            getMetrics()
+        }, 60000);
+        return () => {
+            clearInterval(timeout);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [env]);
 
