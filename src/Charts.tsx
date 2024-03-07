@@ -64,7 +64,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
         if (query.env !== env && query.env) {
             console.log("environment is now: ", query.env)
             setEnv(query.env!);
-        } else { 
+        } else if (query.env !== env){ 
             console.log("environment set to default: prd")
             setEnv("prd");
         } 
