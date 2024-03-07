@@ -269,15 +269,13 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     }, [animationTick]);
 
     useEffect(() => {
-        if (env !== undefined) {
+        getMetrics()
+        const timeout = setInterval(async () => {
             getMetrics()
-            const timeout = setInterval(async () => {
-                getMetrics()
-            }, 60000);
-            return () => {
-                clearInterval(timeout);
-            };
-        }
+        }, 60000);
+        return () => {
+            clearInterval(timeout);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [env]);
 
