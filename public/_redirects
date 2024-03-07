@@ -1,2 +1,2 @@
 # Redirect rule for default environment
-/               /?env=prd
+/   /?env=prd   200!
