@@ -52,7 +52,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
 
     const [animationTick, setAnimationTick] = useState(0);
 
-    const [query, setQuery] = useQueryParams({
+    const [query] = useQueryParams({
         env: StringParam,
     });
 
@@ -66,7 +66,6 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
             setEnv(query.env!);
         } else { 
             console.log("environment set to default: prd")
-            setQuery({env: "prd"})
             setEnv("prd");
         } 
     }, [query.env, env])

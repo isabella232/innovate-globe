@@ -85,10 +85,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
     useEffect(() => {
         if (!query.env) {
             setQuery({env: "prd"});
-            console.log("query.env has been set to prd")
-        } else { 
-            console.log("query.env already has value ", query.env)
-        }
+        } 
     }, [query.env, setQuery])
 
     return (
