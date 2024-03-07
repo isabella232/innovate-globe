@@ -61,9 +61,13 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     );
 
     useEffect(() => {
-        if (query.env !== env) {
+        if (query.env !== env && query.env) {
             console.log("environment is now: ", query.env)
             setEnv(query.env!);
+        } else if (query.env !== env) { 
+            console.log("environment set to default: prd")
+            query.env = "prd"
+            setEnv("prd");
         }
     }, [query.env, env])
 
