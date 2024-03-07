@@ -85,7 +85,7 @@ export const GlobeAndPanel: FunctionComponent = () => {
     useEffect(() => {
         if (!query.env) {
             setQuery({env: "prd"});
-        } 
+        }
     }, [query.env, setQuery])
 
     return (
