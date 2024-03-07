@@ -52,7 +52,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
 
     const [animationTick, setAnimationTick] = useState(0);
 
-    const [query] = useQueryParams({
+    const [query, setQuery] = useQueryParams({
         env: StringParam,
     });
 
@@ -64,13 +64,11 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
         if (query.env !== env && query.env) {
             console.log("environment is now: ", query.env)
             setEnv(query.env!);
-        } else if (query.env !== env) { 
+        } else { 
             console.log("environment set to default: prd")
-            query.env = "prd"
+            setQuery({env: "prd"})
             setEnv("prd");
-        } else if (!query.env) { 
-            setEnv(env)
-        }
+        } 
     }, [query.env, env])
 
     useEffect(() => {
