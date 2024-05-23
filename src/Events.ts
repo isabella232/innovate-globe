@@ -30,6 +30,10 @@ export const AWSRegionGeo = {
         lat: -33.865143,
         lng: 151.2099,
     },
+    "ca-central-1": {
+        lat: 45.502079010009766,
+        lng: -73.56201171875,
+    },
 };
 
 export const envRegionMapping: any = {
@@ -73,6 +77,12 @@ export const envRegionMapping: any = {
             "lambdaEndpoint": `https://72fup7tch7frsprfdvbctvaiv40sommb.lambda-url.ap-southeast-2.on.aws/?password=${localStorage.getItem(
                 "pw"
             )}`
+        },
+        {
+            "region": "ca-central-1",
+            "lambdaEndpoint": `https://bmhvpjqu6axz5sybivpkt4j4oy0maebe.lambda-url.ca-central-1.on.aws/?password=${localStorage.getItem(
+                "pw"
+            )}`
         }
     ]
 }
@@ -88,3 +98,7 @@ export const LambdaURLEU = `https://c6xdcpmacp66i4njcrrwatb73i0opcjr.lambda-url.
 export const LambdaURLAu = `https://72fup7tch7frsprfdvbctvaiv40sommb.lambda-url.ap-southeast-2.on.aws/?password=${localStorage.getItem(
     "pw"
 )}`;
+export const LambdaURLCaCentral = `https://bmhvpjqu6axz5sybivpkt4j4oy0maebe.lambda-url.ca-central-1.on.aws/?password=${localStorage.getItem(
+    "pw"
+)}`;
+

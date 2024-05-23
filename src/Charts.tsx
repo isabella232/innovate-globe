@@ -6,6 +6,7 @@ import { Grid, Text } from "@mantine/core";
 import {
     envRegionMapping,
     LambdaURLAu,
+    LambdaURLCaCentral,
     LambdaURLEU,
     LambdaURLUsEast,
     LiveEvent,
@@ -35,6 +36,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
     const [latencyUs, setLatencyUs] = useState<number>(0);
     const [latencyEu, setLatencyEu] = useState<number>(0);
     const [latencyAu, setLatencyAu] = useState<number>(0);
+    const [latencyCaCentral, setLatencyCaCentral] = useState<number>(0);
 
     const [purchasesPerMinute, setPurchasesPerMinute] = useState<number>(0);
     const [revenuePerMinute, setRevenuePerMinute] = useState<number>(0);
@@ -246,13 +248,42 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
         }
     };
 
+  const getCaCentralEvents = async () => {
+        const events = await usClient
+            .get<LiveEvent[]>(`${LambdaURLCaCentral}&last=${props.tickSpeed}`)
+            .then((res) => res.data)
+            .catch((e) => {
+                console.log(e);
+                const liveEvent: LiveEvent = {
+                    city: "",
+                    event_id: "",
+                    inserted_at: 0,
+                    lat: "",
+                    lng: "",
+                    region: "us-east-1",
+                    timestamp: 0,
+                    type: "",
+                };
+                return [liveEvent];
+            });
+
+        if (events[0]) {
+            const total = events.reduce((previous, current) => {
+                return current.timestamp + previous;
+            }, 0);
+            const mean = total / events.length;
+            setLatencyCaCentral(Math.round((new Date().getTime() - mean) / 1000));
+        }
+    }
+
     const emitData = async () => {
         const promiseAu: Promise<void> = getAuEvents();
         const promiseEu: Promise<void> = getEuEvents();
         const promiseUs: Promise<void> = getUsEvents();
+        const promiseCaCentral: Promise<void> = getCaCentralEvents();
 
 
-        await Promise.all([promiseAu, promiseEu, promiseUs]);
+        await Promise.all([promiseAu, promiseEu, promiseUs, promiseCaCentral]);
 
         setAnimationTick(animationTick + 1);
     };
@@ -384,14 +415,14 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                 bottom: 0,
                 padding: 10,
                 zIndex: 2,
-                width: "320px",
+                width: "420px",
                 height: 120,
                 left: 0
             }}>
                 <Text color="white" weight={"bold"}>Latency</Text>
 
                 <Grid>
-                    <Grid.Col span={4} style={{ color: "white" }}>
+                    <Grid.Col span={3} style={{ color: "white" }}>
                         <Text size={14} color="white">
                             us-east-1
                         </Text>
@@ -410,7 +441,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                             {latencyUs.toString()} seconds
                         </Text>
                     </Grid.Col>
-                    <Grid.Col span={4} style={{ color: "white" }}>
+                    <Grid.Col span={3} style={{ color: "white" }}>
                         <Text size={14} color="white">
                             eu-west-1
                         </Text>
@@ -429,7 +460,7 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                             {latencyEu.toString()} seconds
                         </Text>
                     </Grid.Col>
-                    <Grid.Col span={4} style={{ color: "white" }}>
+                    <Grid.Col span={3} style={{ color: "white" }}>
                         <Text size={14} color="white">
                             ap-southeast-2
                         </Text>
@@ -446,6 +477,23 @@ export const Charts: FunctionComponent<ChartsProps> = (props) => {
                             }
                         >
                             {latencyAu.toString()} seconds
+                        </Text>
+                    </Grid.Col>
+                    <Grid.Col span={3} style={{ color: "white" }}>
+                        <Text size={14} color="white">ca-central-1</Text>
+                        <Text
+                            size="sm"
+                            color={
+                                latencyCaCentral === 0
+                                    ? "grey"
+                                    : latencyCaCentral < 5
+                                        ? "green"
+                                        : latencyCaCentral < 20
+                                            ? "yellow"
+                                            : "red"
+                            }
+                        >
+                            {latencyCaCentral.toString()} seconds
                         </Text>
                     </Grid.Col>
                 </Grid>
