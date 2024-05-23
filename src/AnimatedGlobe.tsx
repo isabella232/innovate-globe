@@ -4,6 +4,7 @@ import globeData from "./data/admin-data.json";
 import {
   AWSRegionGeo,
   LambdaURLAu,
+  LambdaURLCaCentral,
   LambdaURLEU,
   LambdaURLUsEast,
   LiveEvent,
@@ -92,13 +93,17 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
     const resAu: LiveEvent[] = (await (
       await fetch(`${LambdaURLAu}&last=${tickSpeed}`)
     ).json()) as LiveEvent[];
+    const resCaCentral: LiveEvent[] = (await (
+      await fetch(`${LambdaURLCaCentral}&last=${tickSpeed}`)
+    ).json()) as LiveEvent[];
 
-    type validRegions = "us-east-1" | "eu-west-1" | "ap-southeast-2";
+    type validRegions = "us-east-1" | "eu-west-1" | "ap-southeast-2" | "ca-central-1";
 
     const resTotal: Record<validRegions, LiveEvent[]> = {
       "us-east-1": resUsEast,
       "eu-west-1": resEu,
       "ap-southeast-2": resAu,
+      "ca-central-1": resCaCentral,
     };
 
     const datum = Object.entries(resTotal).flatMap(([region, liveEvents]) => {
@@ -284,6 +289,10 @@ export const AnimatedGlobe: FunctionComponent<AnimatedGlobeProps> = ({
         },
         {
           ...AWSRegionGeo["ap-southeast-2"],
+          size: 1,
+        },
+        {
+          ...AWSRegionGeo["ca-central-1"],
           size: 1,
         },
       ].concat([])}
